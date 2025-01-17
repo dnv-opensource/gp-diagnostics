@@ -2,7 +2,7 @@ import itertools
 
 import numpy as np
 
-import gp_diagnostics.utils.checks as checks
+from gp_diagnostics.utils import checks
 from gp_diagnostics.utils.linalg import chol_inv, mulinv_solve, triang_solve, try_chol
 
 
