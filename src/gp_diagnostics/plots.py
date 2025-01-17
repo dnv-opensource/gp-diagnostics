@@ -303,7 +303,7 @@ def error_scatter(x, errors, title="", x_label="x", y_label="Standardized errors
 
 
 
-def gp_diagnostics(data, y_name, plot_labels={}, subplots=True):
+def gp_diagnostics(data, y_name, plot_labels=None, subplots=True):
     """
     Returns list of plotly figures for GP diagnostics
     Inputs:
@@ -320,6 +320,9 @@ def gp_diagnostics(data, y_name, plot_labels={}, subplots=True):
 
     subplots - (optional) The figures will be put in subplots for a more compact view
     """
+
+    if plot_labels is None:
+        plot_labels = {}
 
     # Name of inputs and outputs
     outputnames = [y_name + sub for sub in ["_true", "_mean", "_var"]]
