@@ -341,10 +341,10 @@ def gp_diagnostics(data, y_name, plot_labels={}, subplots=True):
     # Create complete dict for all plot axis labels
     dict_varnames = plot_labels
     for name in data.columns:
-        if name not in dict_varnames.keys():
+        if name not in dict_varnames:
             dict_varnames[name] = name
 
-    if y_name not in dict_varnames.keys():
+    if y_name not in dict_varnames:
         dict_varnames[y_name] = y_name
 
     # QQ plot
