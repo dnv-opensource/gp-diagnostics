@@ -36,9 +36,7 @@ def multifold(K, Y_train, folds, noise_variance=0, check_args=True):
         check_numeric_array(K, 2, "K")  # Check that K is a 2d array
         assert (
             K.shape[0] == Y_train.shape[0] and K.shape[1] == Y_train.shape[0]
-        ), "The size of K {} is not compatible with Y_train {}".format(
-            K.shape, Y_train.shape
-        )  # Check that K has correct size
+        ), f"The size of K {K.shape} is not compatible with Y_train {Y_train.shape}"  # Check that K has correct size
         assert (
             noise_variance >= 0
         ), "noise_variance must be non-negative"  # Check that the noise variance is non-negative
@@ -144,9 +142,7 @@ def loo(K, Y_train, noise_variance=0, check_args=True):
         check_numeric_array(K, 2, "K")  # Check that K is a 2d array
         assert (
             K.shape[0] == Y_train.shape[0] and K.shape[1] == Y_train.shape[0]
-        ), "The size of K {} is not compatible with Y_train {}".format(
-            K.shape, Y_train.shape
-        )  # Check that K has correct size
+        ), f"The size of K {K.shape} is not compatible with Y_train {Y_train.shape}"  # Check that K has correct size
         assert (
             noise_variance >= 0
         ), "noise_variance must be non-negative"  # Check that the noise variance is non-negative
@@ -241,9 +237,9 @@ def check_lower_triangular(arr, argname="arr"):
     Raises:
         AssertionError: if not 'arr' represents a lower triangular matrix
     """
-    assert checks.is_numeric_np_array(arr), "{} must be a numpy array with numeric elements".format(argname)
-    assert checks.is_square(arr), "{} must be a square numpy array".format(argname)
-    assert checks.is_lower_triang(arr), "{} must be lower triangular".format(argname)
+    assert checks.is_numeric_np_array(arr), f"{argname} must be a numpy array with numeric elements"
+    assert checks.is_square(arr), f"{argname} must be a square numpy array"
+    assert checks.is_lower_triang(arr), f"{argname} must be lower triangular"
 
 
 def check_numeric_array(arr, dim, argname="arr"):
@@ -256,8 +252,8 @@ def check_numeric_array(arr, dim, argname="arr"):
     Raises:
         AssertionError: if not 'arr' represents a 'dim'-dimensional numpy array
     """
-    assert checks.is_numeric_np_array(arr), "{} must be a numpy array with numeric elements".format(argname)
-    assert len(arr.shape) == dim, "{} must be a {} dimensional array".format(argname, dim)
+    assert checks.is_numeric_np_array(arr), f"{argname} must be a numpy array with numeric elements"
+    assert len(arr.shape) == dim, f"{argname} must be a {dim} dimensional array"
 
 
 def _multifold_inv(K, Y_train, folds):

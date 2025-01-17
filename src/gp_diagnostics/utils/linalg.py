@@ -85,13 +85,11 @@ def try_chol(K, noise_variance, fun_name):
         return np.linalg.cholesky(A)
     except:
         print(
-            "Could not compute numpy.linalg.cholesky(K + np.eye(K.shape[0])*noise_variance)! The matrix K is probably not positive definite.\
-            \nTry using {}_cholesky() with alternative Cholesky factor, or add jitter by increasing noise_variance.".format(
-                fun_name
-            )
+            f"Could not compute numpy.linalg.cholesky(K + np.eye(K.shape[0])*noise_variance)! The matrix K is probably not positive definite.\
+            \nTry using {fun_name}_cholesky() with alternative Cholesky factor, or add jitter by increasing noise_variance."
         )
         try:
-            print("Smallest eigenvalue: {}".format(np.linalg.eig(A)[0].min()))
+            print(f"Smallest eigenvalue: {np.linalg.eig(A)[0].min()}")
         except:
             pass
 

@@ -35,9 +35,7 @@ def evaluate_GP(K, Y_train, folds=None, noise_variance=0, check_args=True):
         check_numeric_array(K, 2, "K")  # Check that K is a 2d array
         assert (
             K.shape[0] == Y_train.shape[0] and K.shape[1] == Y_train.shape[0]
-        ), "The size of K {} is not compatible with Y_train {}".format(
-            K.shape, Y_train.shape
-        )  # Check that K has correct size
+        ), f"The size of K {K.shape} is not compatible with Y_train {Y_train.shape}"  # Check that K has correct size
         assert (
             noise_variance >= 0
         ), "noise_variance must be non-negative"  # Check that the noise variance is non-negative

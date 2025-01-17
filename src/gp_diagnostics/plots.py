@@ -229,7 +229,7 @@ def pred_vs_error_perc(
         error_y=dict(
             type="data", array=(y_pred_perc_upper - y_pred_perc_lower) / 2, visible=True, color="rgb(105, 144, 193)"
         ),
-        name="{}% intervals".format(conf_interval),
+        name=f"{conf_interval}% intervals",
     )
 
     line = go.Scatter(
