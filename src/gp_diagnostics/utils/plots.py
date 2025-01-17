@@ -1,6 +1,6 @@
-
 from scipy.stats import norm
 import numpy as np
+
 
 def snorm_qq(x):
     """
@@ -14,7 +14,7 @@ def snorm_qq(x):
     q_snorm_lower - 95% lower band
     """
 
-    n = len(x) # Number of data points
+    n = len(x)  # Number of data points
 
     # Sample quantiles
     q_sample = np.sort(x)
@@ -26,7 +26,7 @@ def snorm_qq(x):
     q_snorm = norm.ppf(p)
 
     # Confidence intervals are calculated using +/- k, where
-    k = 0.895 / (np.sqrt(n) * (1- 0.01 / np.sqrt(n) + 0.85/n))
+    k = 0.895 / (np.sqrt(n) * (1 - 0.01 / np.sqrt(n) + 0.85 / n))
 
     q_snorm_upper = norm.ppf(p + k)
     q_snorm_lower = norm.ppf(p - k)
