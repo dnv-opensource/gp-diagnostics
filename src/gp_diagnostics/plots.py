@@ -328,7 +328,7 @@ def gp_diagnostics(data, y_name, plot_labels={}, subplots=True):
 
     # Name of inputs and outputs
     outputnames = [y_name + sub for sub in ["_true", "_mean", "_var"]]
-    inputnames = [name for name in data.columns if not name in outputnames]
+    inputnames = [name for name in data.columns if name not in outputnames]
 
     # Check that output is specified correctly
     if not all(name in data.columns for name in outputnames):
@@ -346,10 +346,10 @@ def gp_diagnostics(data, y_name, plot_labels={}, subplots=True):
     # Create complete dict for all plot axis labels
     dict_varnames = plot_labels
     for name in data.columns:
-        if not name in dict_varnames.keys():
+        if name not in dict_varnames.keys():
             dict_varnames[name] = name
 
-    if not y_name in dict_varnames.keys():
+    if y_name not in dict_varnames.keys():
         dict_varnames[y_name] = y_name
 
     # QQ plot
