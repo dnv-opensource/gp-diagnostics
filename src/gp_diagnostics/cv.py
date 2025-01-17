@@ -1,8 +1,8 @@
 import itertools 
 import numpy as np
-import rapid_models.gp_diagnostics.utils.checks as checks
+import gp_diagnostics.utils.checks as checks
 
-from rapid_models.gp_diagnostics.utils.linalg import chol_inv, mulinv_solve, triang_solve, try_chol
+from gp_diagnostics.utils.linalg import chol_inv, mulinv_solve, triang_solve, try_chol
 
 def multifold(K, Y_train, folds, noise_variance = 0, check_args = True):
     """

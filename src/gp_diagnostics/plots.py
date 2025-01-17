@@ -3,7 +3,7 @@ import plotly
 import plotly.graph_objs as go
 from scipy.stats import norm, gaussian_kde
 
-from .utils import snorm_qq
+from gp_diagnostics.utils.plots import snorm_qq
 
 def hist_residuals(y_pred_mean, y_pred_var, y_test, title = '', showlegend = True):
     """

@@ -1,7 +1,7 @@
 import numpy as np
 
-from rapid_models.gp_diagnostics.cv import *
-from rapid_models.gp_diagnostics.utils.linalg import triang_solve
+from gp_diagnostics.cv import *
+from gp_diagnostics.utils.linalg import triang_solve
 
 def evaluate_GP(K, Y_train, folds = None, noise_variance = 0, check_args = True):
     """
