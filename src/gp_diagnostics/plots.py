@@ -384,48 +384,47 @@ def gp_diagnostics(data, y_name, plot_labels={}, subplots=True):
         # Return list of all plots
         return [fig_qq, fig_pred_vs_err] + figs_errorscatter
 
-    else:
-        # 1. Figure with QQ and pred vs error
-        fig1 = plotly.subplots.make_subplots(
-            rows=1, cols=2, subplot_titles=("Prediction vs test", "Standardised errors QQ"), print_grid=False
-        )
+    # 1. Figure with QQ and pred vs error
+    fig1 = plotly.subplots.make_subplots(
+        rows=1, cols=2, subplot_titles=("Prediction vs test", "Standardised errors QQ"), print_grid=False
+    )
 
-        for trace in fig_qq["data"]:
-            fig1.append_trace(trace, 1, 2)
+    for trace in fig_qq["data"]:
+        fig1.append_trace(trace, 1, 2)
 
-        for trace in fig_pred_vs_err["data"]:
-            fig1.append_trace(trace, 1, 1)
+    for trace in fig_pred_vs_err["data"]:
+        fig1.append_trace(trace, 1, 1)
 
-        fig1["layout"]["xaxis2"].update(fig_qq["layout"]["xaxis"])
-        fig1["layout"]["yaxis2"].update(fig_qq["layout"]["yaxis"])
+    fig1["layout"]["xaxis2"].update(fig_qq["layout"]["xaxis"])
+    fig1["layout"]["yaxis2"].update(fig_qq["layout"]["yaxis"])
 
-        fig1["layout"]["xaxis1"].update(fig_pred_vs_err["layout"]["xaxis"])
-        fig1["layout"]["yaxis1"].update(fig_pred_vs_err["layout"]["yaxis"])
+    fig1["layout"]["xaxis1"].update(fig_pred_vs_err["layout"]["xaxis"])
+    fig1["layout"]["yaxis1"].update(fig_pred_vs_err["layout"]["yaxis"])
 
-        fig1["layout"].update(showlegend=False)
+    fig1["layout"].update(showlegend=False)
 
-        # 2. Pivoted chol....
+    # 2. Pivoted chol....
 
-        # 3. Standardised error scatter plots
-        numcols = 3
-        numplots = len(figs_errorscatter)
-        numrows = int(np.ceil(numplots / numcols))
+    # 3. Standardised error scatter plots
+    numcols = 3
+    numplots = len(figs_errorscatter)
+    numrows = int(np.ceil(numplots / numcols))
 
-        fig3 = plotly.subplots.make_subplots(rows=numrows, cols=numcols, print_grid=False)
+    fig3 = plotly.subplots.make_subplots(rows=numrows, cols=numcols, print_grid=False)
 
-        index = -1
-        for i in range(numcols):
-            for j in range(numrows):
-                index += 1
-                if index < numplots:
-                    for trace in figs_errorscatter[index]["data"]:
-                        fig3.append_trace(trace, j + 1, i + 1)
+    index = -1
+    for i in range(numcols):
+        for j in range(numrows):
+            index += 1
+            if index < numplots:
+                for trace in figs_errorscatter[index]["data"]:
+                    fig3.append_trace(trace, j + 1, i + 1)
 
-                    fig3["layout"]["xaxis" + str(index + 1)].update(
-                        title=figs_errorscatter[index]["layout"]["xaxis"]["title"]
-                    )
+                fig3["layout"]["xaxis" + str(index + 1)].update(
+                    title=figs_errorscatter[index]["layout"]["xaxis"]["title"]
+                )
 
-        fig3["layout"].update(showlegend=False, title="Standardised errors")
-        fig3["layout"].update(height=330 * numrows, width=950)
+    fig3["layout"].update(showlegend=False, title="Standardised errors")
+    fig3["layout"].update(height=330 * numrows, width=950)
 
-        return [fig1, fig3]
+    return [fig1, fig3]
