@@ -54,9 +54,8 @@ def hist_residuals(y_pred_mean, y_pred_var, y_test, title="", showlegend=True):
     )
 
     data = [hist, kde_dens, normal_dens]
-    fig = go.Figure(data=data, layout=layout)
+    return go.Figure(data=data, layout=layout)
 
-    return fig
 
 
 def qq_residuals(y_pred_mean, y_pred_var, y_test, title="", showlegend=True):
@@ -123,9 +122,8 @@ def qq_residuals(y_pred_mean, y_pred_var, y_test, title="", showlegend=True):
     )
 
     data = [qq_scatter, qq_upper, qq_lower, line]
-    fig = go.Figure(data=data, layout=layout)
+    return go.Figure(data=data, layout=layout)
 
-    return fig
 
 
 def add_traces_to_fig(fig, trace_list):
@@ -191,9 +189,8 @@ def pred_vs_error(y_pred_mean, y_pred_var, y_test, title="", showlegend=True):
     )
 
     data = [pred_bars, pred, line]
-    fig = go.Figure(data=data, layout=layout)
+    return go.Figure(data=data, layout=layout)
 
-    return fig
 
 
 def pred_vs_error_perc(
@@ -247,9 +244,8 @@ def pred_vs_error_perc(
     )
 
     data = [pred_bars, pred, line]
-    fig = go.Figure(data=data, layout=layout)
+    return go.Figure(data=data, layout=layout)
 
-    return fig
 
 
 def error_scatter(x, errors, title="", x_label="x", y_label="Standardized errors", showlegend=True):
@@ -303,9 +299,8 @@ def error_scatter(x, errors, title="", x_label="x", y_label="Standardized errors
     )
 
     data = [errors, line_mid, line_upper, line_lower]
-    fig = go.Figure(data=data, layout=layout)
+    return go.Figure(data=data, layout=layout)
 
-    return fig
 
 
 def gp_diagnostics(data, y_name, plot_labels={}, subplots=True):
