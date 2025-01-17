@@ -377,7 +377,7 @@ def gp_diagnostics(data, y_name, plot_labels={}, subplots=True):
 
     if not subplots:
         # Return list of all plots
-        return [fig_qq, fig_pred_vs_err] + figs_errorscatter
+        return [fig_qq, fig_pred_vs_err, *figs_errorscatter]
 
     # 1. Figure with QQ and pred vs error
     fig1 = plotly.subplots.make_subplots(
