@@ -32,12 +32,12 @@ def hist_residuals(y_pred_mean, y_pred_var, y_test, title="", showlegend=True):
     x_min, x_max = residuals_y.min(), residuals_y.max()
     x = np.linspace(x_min, x_max, 100)
     normal_dens = go.Scatter(
-        x=x, y=norm.pdf(x), mode="lines", name="standard normal density", line=dict(color="black", width=1)
+        x=x, y=norm.pdf(x), mode="lines", name="standard normal density", line={"color": "black", "width": 1}
     )
 
     # kde
     kde = gaussian_kde(residuals_y)
-    kde_dens = go.Scatter(x=x, y=kde(x), mode="lines", name="residuals kde", line=dict(color=clr, width=1))
+    kde_dens = go.Scatter(x=x, y=kde(x), mode="lines", name="residuals kde", line={"color": clr, "width": 1})
 
     # Layout
     layout = go.Layout(
@@ -46,11 +46,11 @@ def hist_residuals(y_pred_mean, y_pred_var, y_test, title="", showlegend=True):
         autosize=False,
         width=700,
         height=600,
-        xaxis=dict(
-            title="Standardised error", titlefont=dict(family="Courier New, monospace", size=18, color="#7f7f7f")
-        ),
-        yaxis=dict(title="Density", titlefont=dict(family="Courier New, monospace", size=18, color="#7f7f7f")),
-        legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01),
+        xaxis={
+            "title": "Standardised error", "titlefont": {"family": "Courier New, monospace", "size": 18, "color": "#7f7f7f"}
+        },
+        yaxis={"title": "Density", "titlefont": {"family": "Courier New, monospace", "size": 18, "color": "#7f7f7f"}},
+        legend={"yanchor": "top", "y": 0.99, "xanchor": "left", "x": 0.01},
     )
 
     data = [hist, kde_dens, normal_dens]
@@ -79,14 +79,14 @@ def qq_residuals(y_pred_mean, y_pred_var, y_test, title="", showlegend=True):
     q_sample, q_snorm, q_snorm_upper, q_snorm_lower = snorm_qq(residuals_y)
 
     qq_scatter = go.Scatter(
-        x=q_snorm, y=q_sample, mode="markers", marker=dict(size=6, color="rgb(105, 144, 193)"), name="Data"
+        x=q_snorm, y=q_sample, mode="markers", marker={"size": 6, "color": "rgb(105, 144, 193)"}, name="Data"
     )
 
     qq_upper = go.Scatter(
         x=q_snorm_upper,
         y=q_sample,
         mode="lines",
-        line=dict(color="rgb(150, 150, 150)", dash="dot"),
+        line={"color": "rgb(150, 150, 150)", "dash": "dot"},
         name="95% confidence band",
         legendgroup="conf",
     )
@@ -95,7 +95,7 @@ def qq_residuals(y_pred_mean, y_pred_var, y_test, title="", showlegend=True):
         x=q_snorm_lower,
         y=q_sample,
         mode="lines",
-        line=dict(color="rgb(150, 150, 150)", dash="dot"),
+        line={"color": "rgb(150, 150, 150)", "dash": "dot"},
         name="lower",
         legendgroup="conf",
         showlegend=False,
@@ -105,7 +105,7 @@ def qq_residuals(y_pred_mean, y_pred_var, y_test, title="", showlegend=True):
     maxval = np.max([q_sample.min(), q_snorm.max()])
 
     line = go.Scatter(
-        x=[minval, maxval], y=[minval, maxval], mode="lines", line=dict(color="rgb(0, 0, 0)", dash="dash"), name="x = y"
+        x=[minval, maxval], y=[minval, maxval], mode="lines", line={"color": "rgb(0, 0, 0)", "dash": "dash"}, name="x = y"
     )
 
     layout = go.Layout(
@@ -114,12 +114,12 @@ def qq_residuals(y_pred_mean, y_pred_var, y_test, title="", showlegend=True):
         autosize=False,
         width=700,
         height=600,
-        xaxis=dict(
-            title="Standard normal quantiles",
-            titlefont=dict(family="Courier New, monospace", size=18, color="#7f7f7f"),
-            range=[q_snorm.min() - 0.2, q_snorm.max() + 0.2],
-        ),
-        yaxis=dict(title="Sample quantiles", titlefont=dict(family="Courier New, monospace", size=18, color="#7f7f7f")),
+        xaxis={
+            "title": "Standard normal quantiles",
+            "titlefont": {"family": "Courier New, monospace", "size": 18, "color": "#7f7f7f"},
+            "range": [q_snorm.min() - 0.2, q_snorm.max() + 0.2],
+        },
+        yaxis={"title": "Sample quantiles", "titlefont": {"family": "Courier New, monospace", "size": 18, "color": "#7f7f7f"}},
     )
 
     data = [qq_scatter, qq_upper, qq_lower, line]
@@ -162,7 +162,7 @@ def pred_vs_error(y_pred_mean, y_pred_var, y_test, title="", showlegend=True):
 
     # Predictions
     pred = go.Scatter(
-        x=y_test, y=y_pred_mean, mode="markers", marker=dict(size=6, color="rgb(105, 144, 193)"), name="Prediction"
+        x=y_test, y=y_pred_mean, mode="markers", marker={"size": 6, "color": "rgb(105, 144, 193)"}, name="Prediction"
     )
 
     # Predictions with error bars
@@ -171,13 +171,13 @@ def pred_vs_error(y_pred_mean, y_pred_var, y_test, title="", showlegend=True):
         x=y_test,
         y=y_pred_mean,
         mode="markers",
-        marker=dict(size=6, color="rgb(105, 144, 193)"),
-        error_y=dict(type="data", array=y_pred_std * num_std, visible=True, color="rgb(105, 144, 193)"),
+        marker={"size": 6, "color": "rgb(105, 144, 193)"},
+        error_y={"type": "data", "array": y_pred_std * num_std, "visible": True, "color": "rgb(105, 144, 193)"},
         name="95% intervals",
     )
 
     line = go.Scatter(
-        x=[minval, maxval], y=[minval, maxval], mode="lines", line=dict(color="rgb(0, 0, 0)", dash="dash"), name="x = y"
+        x=[minval, maxval], y=[minval, maxval], mode="lines", line={"color": "rgb(0, 0, 0)", "dash": "dash"}, name="x = y"
     )
 
     layout = go.Layout(
@@ -186,8 +186,8 @@ def pred_vs_error(y_pred_mean, y_pred_var, y_test, title="", showlegend=True):
         autosize=False,
         width=700,
         height=600,
-        xaxis=dict(title="True value", titlefont=dict(family="Courier New, monospace", size=18, color="#7f7f7f")),
-        yaxis=dict(title="Predicted value", titlefont=dict(family="Courier New, monospace", size=18, color="#7f7f7f")),
+        xaxis={"title": "True value", "titlefont": {"family": "Courier New, monospace", "size": 18, "color": "#7f7f7f"}},
+        yaxis={"title": "Predicted value", "titlefont": {"family": "Courier New, monospace", "size": 18, "color": "#7f7f7f"}},
     )
 
     data = [pred_bars, pred, line]
@@ -217,7 +217,7 @@ def pred_vs_error_perc(
 
     # Predictions
     pred = go.Scatter(
-        x=y_test, y=y_pred_mean, mode="markers", marker=dict(size=6, color="rgb(105, 144, 193)"), name="Prediction"
+        x=y_test, y=y_pred_mean, mode="markers", marker={"size": 6, "color": "rgb(105, 144, 193)"}, name="Prediction"
     )
 
     # Predictions with error bars
@@ -225,15 +225,15 @@ def pred_vs_error_perc(
         x=y_test,
         y=(y_pred_perc_upper + y_pred_perc_lower) / 2,
         mode="markers",
-        marker=dict(size=0, color="rgb(105, 144, 193)", opacity=0),
-        error_y=dict(
-            type="data", array=(y_pred_perc_upper - y_pred_perc_lower) / 2, visible=True, color="rgb(105, 144, 193)"
-        ),
+        marker={"size": 0, "color": "rgb(105, 144, 193)", "opacity": 0},
+        error_y={
+            "type": "data", "array": (y_pred_perc_upper - y_pred_perc_lower) / 2, "visible": True, "color": "rgb(105, 144, 193)"
+        },
         name=f"{conf_interval}% intervals",
     )
 
     line = go.Scatter(
-        x=[minval, maxval], y=[minval, maxval], mode="lines", line=dict(color="rgb(0, 0, 0)", dash="dash"), name="x = y"
+        x=[minval, maxval], y=[minval, maxval], mode="lines", line={"color": "rgb(0, 0, 0)", "dash": "dash"}, name="x = y"
     )
 
     layout = go.Layout(
@@ -242,8 +242,8 @@ def pred_vs_error_perc(
         autosize=False,
         width=700,
         height=600,
-        xaxis=dict(title="True value", titlefont=dict(family="Courier New, monospace", size=18, color="#7f7f7f")),
-        yaxis=dict(title="Predicted value", titlefont=dict(family="Courier New, monospace", size=18, color="#7f7f7f")),
+        xaxis={"title": "True value", "titlefont": {"family": "Courier New, monospace", "size": 18, "color": "#7f7f7f"}},
+        yaxis={"title": "Predicted value", "titlefont": {"family": "Courier New, monospace", "size": 18, "color": "#7f7f7f"}},
     )
 
     data = [pred_bars, pred, line]
@@ -257,7 +257,7 @@ def error_scatter(x, errors, title="", x_label="x", y_label="Standardized errors
     Error scatter plot with 95% interval
     """
 
-    errors = go.Scatter(x=x, y=errors, mode="markers", marker=dict(size=6, color="rgb(105, 144, 193)"), name=y_label)
+    errors = go.Scatter(x=x, y=errors, mode="markers", marker={"size": 6, "color": "rgb(105, 144, 193)"}, name=y_label)
 
     num_std = 1.959963984540054  # For 95% interval
     min_x = x.min()
@@ -266,14 +266,14 @@ def error_scatter(x, errors, title="", x_label="x", y_label="Standardized errors
     x_line = [min_x - margin, max_x + margin]
 
     line_mid = go.Scatter(
-        x=x_line, y=[0, 0], mode="lines", line=dict(color="rgb(0, 0, 0)", dash="dash"), name="", showlegend=False
+        x=x_line, y=[0, 0], mode="lines", line={"color": "rgb(0, 0, 0)", "dash": "dash"}, name="", showlegend=False
     )
 
     line_upper = go.Scatter(
         x=x_line,
         y=[num_std, num_std],
         mode="lines",
-        line=dict(color="rgb(150, 150, 150)", dash="dot"),
+        line={"color": "rgb(150, 150, 150)", "dash": "dot"},
         name="95% interval",
         legendgroup="conf",
     )
@@ -282,7 +282,7 @@ def error_scatter(x, errors, title="", x_label="x", y_label="Standardized errors
         x=x_line,
         y=[-num_std, -num_std],
         mode="lines",
-        line=dict(color="rgb(150, 150, 150)", dash="dot"),
+        line={"color": "rgb(150, 150, 150)", "dash": "dot"},
         name="95% interval",
         legendgroup="conf",
         showlegend=False,
@@ -294,12 +294,12 @@ def error_scatter(x, errors, title="", x_label="x", y_label="Standardized errors
         autosize=False,
         width=700,
         height=600,
-        xaxis=dict(
-            title=x_label,
-            titlefont=dict(family="Courier New, monospace", size=18, color="#7f7f7f"),
-            range=[min_x - margin, max_x + margin],
-        ),
-        yaxis=dict(title=y_label, titlefont=dict(family="Courier New, monospace", size=18, color="#7f7f7f")),
+        xaxis={
+            "title": x_label,
+            "titlefont": {"family": "Courier New, monospace", "size": 18, "color": "#7f7f7f"},
+            "range": [min_x - margin, max_x + margin],
+        },
+        yaxis={"title": y_label, "titlefont": {"family": "Courier New, monospace", "size": 18, "color": "#7f7f7f"}},
     )
 
     data = [errors, line_mid, line_upper, line_lower]
