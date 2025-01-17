@@ -1,7 +1,7 @@
 import numpy as np
 import plotly
 import plotly.graph_objs as go
-from scipy.stats import norm, gaussian_kde
+from scipy.stats import gaussian_kde, norm
 
 from gp_diagnostics.utils.plots import snorm_qq
 

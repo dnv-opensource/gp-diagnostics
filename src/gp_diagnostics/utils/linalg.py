@@ -1,6 +1,5 @@
 import numpy as np
 from scipy import linalg
-from numpy.core.umath_tests import inner1d
 
 
 def triang_solve(A, B, lower=True, trans=False):
