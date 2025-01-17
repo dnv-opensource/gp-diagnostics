@@ -1,0 +1,14 @@
+[project]
+name = "gp-diagnostics"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "magkri", email = "magnus.kristiansen@dnv.com" }
+]
+requires-python = ">=3.12"
+dependencies = []
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
