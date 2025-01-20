@@ -330,9 +330,9 @@ def gp_diagnostics(data, y_name, plot_labels=None, subplots=True):
 
     # Check that output is specified correctly
     if not all(name in data.columns for name in outputnames):
-        print("Error: data must contain the following columns for the output named " + y_name)
-        print(outputnames)
-        return 0
+        missing_cols = [col for col in outputnames if col not in data.columns]
+        msg = f"DataFrame is missing required columns for '{y_name}'.\nMissing columns: {missing_cols}"
+        raise ValueError(msg)
 
     # Extract data from dataframe
     y_pred_mean = data[y_name + "_mean"]

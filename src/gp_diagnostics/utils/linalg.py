@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 from scipy import linalg
 
@@ -78,19 +80,22 @@ def traceprod(A, B):
 
 def try_chol(K, noise_variance, fun_name):
     """
-    Try to compute the Cholesky decomposition of (K + noise_variance*I), and print an error message if it does not work
+    Try to compute the Cholesky decomposition of (K + noise_variance*I),
+    and raise a warning if it fails.
     """
     A = K + np.eye(K.shape[0]) * noise_variance
     try:
         return np.linalg.cholesky(A)
-    except:
-        print(
-            f"Could not compute numpy.linalg.cholesky(K + np.eye(K.shape[0])*noise_variance)! The matrix K is probably not positive definite.\
-            \nTry using {fun_name}_cholesky() with alternative Cholesky factor, or add jitter by increasing noise_variance."
+    except np.linalg.LinAlgError:
+        warnings.warn(
+            f"Could not compute Cholesky decomposition in '{fun_name}'. The matrix is likely not positive definite. "
+            "Consider adding jitter or a fallback approach. Returning None."
         )
+
         try:
-            print(f"Smallest eigenvalue: {np.linalg.eig(A)[0].min()}")
-        except:
-            pass
+            min_eig = np.linalg.eig(A)[0].min()
+            warnings.warn(f"Smallest eigenvalue: {min_eig}")
+        except np.linalg.LinAlgError:
+            warnings.warn("Could not compute smallest eigenvalue.")
 
     return None
