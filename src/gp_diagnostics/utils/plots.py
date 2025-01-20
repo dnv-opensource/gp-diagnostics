@@ -3,17 +3,15 @@ from scipy.stats import norm
 
 
 def snorm_qq(x):
-    """
-    Function for calculating standard normal QQ plot data with 95% confidence. Based on qqnorm in R.
+    """Function for calculating standard normal QQ plot data with 95% confidence. Based on qqnorm in R.
     Input:
     x - data in 1D array
     Output:
     q_sample - sample quantiles
     q_snorm - standard normal quantiles
     q_snorm_upper - 95% upper band
-    q_snorm_lower - 95% lower band
+    q_snorm_lower - 95% lower band.
     """
-
     n = len(x)  # Number of data points
 
     # Sample quantiles

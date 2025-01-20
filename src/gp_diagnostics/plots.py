@@ -7,17 +7,15 @@ from gp_diagnostics.utils.plots import snorm_qq
 
 
 def hist_residuals(y_pred_mean, y_pred_var, y_test, title="", showlegend=True):
-    """
-    Create histogram of residuals
+    """Create histogram of residuals
     Input:
     y_pred_mean - prediction mean
     y_pred_var - prediction variance
     y_test - true y value
     title - (optional)
     Output:
-    fig - plotly figure
+    fig - plotly figure.
     """
-
     # defualt color etc..
     clr = "rgb(105, 144, 193)"
 
@@ -59,17 +57,15 @@ def hist_residuals(y_pred_mean, y_pred_var, y_test, title="", showlegend=True):
 
 
 def qq_residuals(y_pred_mean, y_pred_var, y_test, title="", showlegend=True):
-    """
-    Create QQ plot
+    """Create QQ plot
     Input:
     y_pred_mean - prediction mean
     y_pred_var - prediction variance
     y_test - true y value
     title - (optional)
     Output:
-    fig - plotly figure
+    fig - plotly figure.
     """
-
     # Calculate residuals
     y_pred_std = np.power(y_pred_var, 0.5)
     residuals_y = (y_pred_mean - y_test) / y_pred_std  # Standardized residuals
@@ -133,13 +129,11 @@ def qq_residuals(y_pred_mean, y_pred_var, y_test, title="", showlegend=True):
 
 
 def add_traces_to_fig(fig, trace_list):
-    """
-    Add traces to plotly figure
+    """Add traces to plotly figure.
 
     fig - plotly figure
     trace_list - list of new traces
     """
-
     data = list(fig.data) + trace_list
     layout = fig.layout
 
@@ -147,16 +141,14 @@ def add_traces_to_fig(fig, trace_list):
 
 
 def pred_vs_error(y_pred_mean, y_pred_var, y_test, title="", showlegend=True):
-    """
-    Plot prediction with error bars as a function of true value
+    """Plot prediction with error bars as a function of true value
     Input:
     y_pred_mean - prediction mean
     y_pred_var - prediction variance
     y_test - true y value
     Output:
-    fig - plotly figure
+    fig - plotly figure.
     """
-
     # Plot min/max
     minval = np.min([y_pred_mean.min(), y_test.min()])
     maxval = np.max([y_pred_mean.min(), y_test.max()])
@@ -211,8 +203,7 @@ def pred_vs_error(y_pred_mean, y_pred_var, y_test, title="", showlegend=True):
 def pred_vs_error_perc(
     y_pred_mean, y_pred_perc_lower, y_pred_perc_upper, y_test, conf_interval, title="", showlegend=True
 ):
-    """
-    Plot prediction with error bars as a function of true value -- using percentile data
+    """Plot prediction with error bars as a function of true value -- using percentile data.
 
     Input:
     y_pred_mean - prediction mean
@@ -222,7 +213,6 @@ def pred_vs_error_perc(
     Output:
     fig - plotly figure
     """
-
     # Plot min/max
     minval = np.min([y_pred_mean.min(), y_test.min()])
     maxval = np.max([y_pred_mean.min(), y_test.max()])
@@ -276,10 +266,7 @@ def pred_vs_error_perc(
 
 
 def error_scatter(x, errors, title="", x_label="x", y_label="Standardized errors", showlegend=True):
-    """
-    Error scatter plot with 95% interval
-    """
-
+    """Error scatter plot with 95% interval."""
     errors = go.Scatter(x=x, y=errors, mode="markers", marker={"size": 6, "color": "rgb(105, 144, 193)"}, name=y_label)
 
     num_std = 1.959963984540054  # For 95% interval
@@ -330,8 +317,7 @@ def error_scatter(x, errors, title="", x_label="x", y_label="Standardized errors
 
 
 def gp_diagnostics(data, y_name, plot_labels=None, subplots=True):
-    """
-    Returns list of plotly figures for GP diagnostics
+    """Returns list of plotly figures for GP diagnostics
     Inputs:
 
     data - Pandas dataframe with all input and output data.
@@ -346,7 +332,6 @@ def gp_diagnostics(data, y_name, plot_labels=None, subplots=True):
 
     subplots - (optional) The figures will be put in subplots for a more compact view
     """
-
     if plot_labels is None:
         plot_labels = {}
 

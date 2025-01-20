@@ -5,8 +5,7 @@ from scipy import linalg
 
 
 def triang_solve(A, B, lower=True, trans=False):
-    """
-    Wrapper for lapack dtrtrs function
+    """Wrapper for lapack dtrtrs function
     DTRTRS solves a triangular system of the form
         A * X = B  or  A**T * X = B,
     where A is a triangular matrix of order N, and B is an N-by-NRHS
@@ -14,7 +13,7 @@ def triang_solve(A, B, lower=True, trans=False):
     :param A: Matrix A(triangular)
     :param B: Matrix B
     :param lower: is matrix lower (true) or upper (false)
-    :param trans: calculate A**T * X = B (true) or A * X = B (false)
+    :param trans: calculate A**T * X = B (true) or A * X = B (false).
 
     :returns: Solution to A * X = B or A**T * X = B
     """
@@ -30,19 +29,16 @@ def triang_solve(A, B, lower=True, trans=False):
 
 
 def mulinv_solve(F, B, lower=True):
-    """
-    Solve A*X = B where A = F*F^{T}
+    """Solve A*X = B where A = F*F^{T}.
 
     lower = True -> when F is LOWER triangular. This gives faster calculation
     """
-
     tmp = triang_solve(F, B, lower=lower, trans=False)
     return triang_solve(F, tmp, lower=lower, trans=True)
 
 
 def mulinv_solve_rev(F, B, lower=True):
-    """
-    Reversed version of mulinv_solve
+    """Reversed version of mulinv_solve.
 
     Solves X*A = B where A = F*F^{T}
 
@@ -53,7 +49,7 @@ def mulinv_solve_rev(F, B, lower=True):
 
 
 def symmetrify(A, upper=False):
-    """Create symmetric matrix from triangular matrix"""
+    """Create symmetric matrix from triangular matrix."""
     triu = np.triu_indices_from(A, k=1)
     if upper:
         A.T[triu] = A[triu]
@@ -62,9 +58,8 @@ def symmetrify(A, upper=False):
 
 
 def chol_inv(L):
-    """
-    Return inverse of matrix A = L*L.T where L is lower triangular
-    Uses LAPACK function dpotri
+    """Return inverse of matrix A = L*L.T where L is lower triangular
+    Uses LAPACK function dpotri.
     """
     A_inv, info = linalg.lapack.dpotri(L, lower=1)
     symmetrify(A_inv)
@@ -72,15 +67,12 @@ def chol_inv(L):
 
 
 def traceprod(A, B):
-    """
-    Calculate trace(A*B) for two matrices A and B
-    """
+    """Calculate trace(A*B) for two matrices A and B."""
     return np.sum(np.core.umath_tests.inner1d(A, B.T))
 
 
 def try_chol(K, noise_variance, fun_name):
-    """
-    Try to compute the Cholesky decomposition of (K + noise_variance*I),
+    """Try to compute the Cholesky decomposition of (K + noise_variance*I),
     and raise a warning if it fails.
     """
     A = K + np.eye(K.shape[0]) * noise_variance

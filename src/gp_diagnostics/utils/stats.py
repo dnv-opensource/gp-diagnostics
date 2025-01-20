@@ -5,8 +5,7 @@ from scipy.stats import norm
 
 
 def snorm_qq(x):
-    """
-    Function for calculating standard normal QQ plot data with 95% confidence.
+    """Function for calculating standard normal QQ plot data with 95% confidence.
 
     Based on extRemes.qqnorm in R. https://rdrr.io/cran/extRemes/man/qqnorm.html
 
@@ -23,13 +22,12 @@ def snorm_qq(x):
         x = q_snorm, q_snorm_upper, q_snorm_lower (Standard Normal Quantiles)
         y = q_sample (Sample Quantiles)
 
-        Example:
+    Example:
         fig, ax = plt.subplots()
         ax.scatter(q_snorm, q_sample)
         ax.plot(q_snorm_upper, q_sample, 'k--')
         ax.plot(q_snorm_lower, q_sample, 'k--')
     """
-
     n = len(x)  # Number of data points
 
     # Sample quantiles
@@ -51,8 +49,7 @@ def snorm_qq(x):
 
 
 def split_test_train_fold(folds, X, i):
-    """
-    Split X into X_train, X_test where
+    """Split X into X_train, X_test where.
 
     Args:
         folds (list of lists): The index subsets.
@@ -63,7 +60,6 @@ def split_test_train_fold(folds, X, i):
         X_test = X[folds[i]]
         X_train = the rest
     """
-
     idx_test = folds[i]
     idx_train = list(itertools.chain(*(folds[0:i] + folds[i + 1 :])))
 

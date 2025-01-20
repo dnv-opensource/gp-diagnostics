@@ -7,9 +7,8 @@ from gp_diagnostics.utils.linalg import chol_inv, mulinv_solve, triang_solve, tr
 
 
 def multifold(K, Y_train, folds, noise_variance=0, check_args=True):
-    """
-    Compute multifold CV residuals for GP regression with noiseless (noise_variance = 0) or fixed variance iid Gaussian noise.
-    (residual = observed - predicted)
+    """Compute multifold CV residuals for GP regression with noiseless (noise_variance = 0) or fixed variance iid Gaussian noise.
+    (residual = observed - predicted).
 
     Args:
         K (2d array): GP prior covariance matrix
@@ -29,7 +28,6 @@ def multifold(K, Y_train, folds, noise_variance=0, check_args=True):
     [D. Ginsbourger and C. Schaerer (2021). Fast calculation of Gaussian Process multiple-fold
     crossvalidation residuals and their covariances. arXiv:2101.03108]
     """
-
     # Check arguments
     if check_args:
         check_numeric_array(Y_train, 1, "Y_train")  # Check that Y_train is a 1d numeric array
@@ -52,9 +50,8 @@ def multifold(K, Y_train, folds, noise_variance=0, check_args=True):
 
 
 def multifold_cholesky(L, Y_train, folds, check_args=True):
-    """
-    Compute multifold CV residuals from the Cholesky factor L of the observation precision matrix and the training data Y_train
-    (residual = observed - predicted)
+    """Compute multifold CV residuals from the Cholesky factor L of the observation precision matrix and the training data Y_train
+    (residual = observed - predicted).
 
     Args:
         L (2d array): lower triangular Cholesky factor of covariance matrix (L L.T = covariance matrix)
@@ -78,7 +75,6 @@ def multifold_cholesky(L, Y_train, folds, check_args=True):
     [D. Ginsbourger and C. Schaerer (2021). Fast calculation of Gaussian Process multiple-fold
     crossvalidation residuals and their covariances. arXiv:2101.03108]
     """
-
     N_folds = len(folds)  # Number of folds
     N_training = Y_train.shape[0]  # Total number of training observations
 
@@ -119,8 +115,7 @@ def multifold_cholesky(L, Y_train, folds, check_args=True):
 
 
 def loo(K, Y_train, noise_variance=0, check_args=True):
-    """
-    Compute Leave-One-Out (LOO) residuals for GP regression with noiseless (noise_variance = 0) or fixed variance iid Gaussian noise.
+    """Compute Leave-One-Out (LOO) residuals for GP regression with noiseless (noise_variance = 0) or fixed variance iid Gaussian noise.
     (residual = observed - predicted)
     This function just calls 'loo_cholesky()' with the appropriate Cholesky factor.
 
@@ -136,7 +131,6 @@ def loo(K, Y_train, noise_variance=0, check_args=True):
         cov: Covariance of LOO residuals
         residuals_transformed: The residuals transformed to the standard normal space
     """
-
     if check_args:
         check_numeric_array(Y_train, 1, "Y_train")  # Check that Y_train is a 1d numeric array
         check_numeric_array(K, 2, "K")  # Check that K is a 2d array
@@ -157,9 +151,8 @@ def loo(K, Y_train, noise_variance=0, check_args=True):
 
 
 def loo_cholesky(L, Y_train, check_args=True):
-    """
-    Compute Leave-One-Out (LOO) residuals from the Cholesky factor L of the observation precision matrix and the training data Y_train
-    (residual = observed - predicted)
+    """Compute Leave-One-Out (LOO) residuals from the Cholesky factor L of the observation precision matrix and the training data Y_train
+    (residual = observed - predicted).
 
     Args:
         L (2d array): lower triangular Cholesky factor of covariance matrix (L L.T = covariance matrix)
@@ -182,7 +175,6 @@ def loo_cholesky(L, Y_train, check_args=True):
     [O. Dubrule. Cross validation of kriging in a unique neighborhood.
     Journal of the International Association for Mathematical Geology, 15 (6):687-699, 1983.]
     """
-
     # Check that arguments are ok
     if check_args:
         check_lower_triangular(L, "L")  # Check that L is a lower triangular matrix
@@ -204,8 +196,7 @@ def loo_cholesky(L, Y_train, check_args=True):
 
 
 def check_folds_indices(folds, n_max):
-    """
-    Check that the list of index subsets (list of lists) is valid
+    """Check that the list of index subsets (list of lists) is valid.
 
     Args:
         folds (list of lists): The index subsets.
@@ -215,7 +206,6 @@ def check_folds_indices(folds, n_max):
         AssertionError: if not 'folds' represents the range [0:n_max-1] of n_max indices split into
                         non overlapping subsets
     """
-
     assert isinstance(folds, list), "'folds' has to be a list of lists of integers"
     assert all(isinstance(x, list) for x in folds), "'folds' has to be a list of lists of integers"
     assert [] not in folds, "'folds' has to be a list of lists of integers"
@@ -228,8 +218,7 @@ def check_folds_indices(folds, n_max):
 
 
 def check_lower_triangular(arr, argname="arr"):
-    """
-    Check that the argument is a 2d numpy array which is lower triangular
+    """Check that the argument is a 2d numpy array which is lower triangular.
 
     Args:
         arr (): object
@@ -243,8 +232,7 @@ def check_lower_triangular(arr, argname="arr"):
 
 
 def check_numeric_array(arr, dim, argname="arr"):
-    """
-    Check that the argument is a numpy array of correct dimension
+    """Check that the argument is a numpy array of correct dimension.
 
     Args:
         arr (): object
@@ -257,9 +245,8 @@ def check_numeric_array(arr, dim, argname="arr"):
 
 
 def _multifold_inv(K, Y_train, folds):
-    """
-    Compute multifold cv residuals using matrix inverse (for testing)
-    (residual = observed - predicted)
+    """Compute multifold cv residuals using matrix inverse (for testing)
+    (residual = observed - predicted).
 
     Args:
         K (2d array): covariance matrix

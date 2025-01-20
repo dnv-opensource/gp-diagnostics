@@ -5,8 +5,7 @@ from gp_diagnostics.utils.linalg import triang_solve
 
 
 def evaluate_GP(K, Y_train, folds=None, noise_variance=0, check_args=True):
-    """
-    Compute a set of evaluation metrics for GP regression with noiseless (noise_variance = 0) or fixed variance iid Gaussian noise.
+    """Compute a set of evaluation metrics for GP regression with noiseless (noise_variance = 0) or fixed variance iid Gaussian noise.
 
     Specify the list 'folds' of indices for multifold cross-validation (see documentation for cv.multifold), otherwise leave-one-out is assumed.
 
@@ -28,7 +27,6 @@ def evaluate_GP(K, Y_train, folds=None, noise_variance=0, check_args=True):
         residuals_var: Variance of CV residuals
         residuals_transformed: The residuals transformed to the standard normal space
     """
-
     # Check arguments
     if check_args:
         check_numeric_array(Y_train, 1, "Y_train")  # Check that Y_train is a 1d numeric array
@@ -55,10 +53,7 @@ def evaluate_GP(K, Y_train, folds=None, noise_variance=0, check_args=True):
 
 
 def evaluate_GP_cholesky(L, Y_train, folds=None, check_args=True):
-    """
-    This is called by evaluate_GP() with the appropriate Cholesky factor: LL^T = K + np.eye(K.shape[0])*noise_variance
-    """
-
+    """This is called by evaluate_GP() with the appropriate Cholesky factor: LL^T = K + np.eye(K.shape[0])*noise_variance."""
     # Check that arguments are ok
     if check_args:
         check_lower_triangular(L, "L")  # Check that L is a lower triangular matrix
@@ -95,15 +90,11 @@ def evaluate_GP_cholesky(L, Y_train, folds=None, check_args=True):
 
 
 def log_prob_normal(L, Y):
-    """
-    Compute log probability of the data Y under an unbiased Gaussian with covariance L*L^T
-    """
+    """Compute log probability of the data Y under an unbiased Gaussian with covariance L*L^T."""
     a = triang_solve(L, Y)  # La = Y
     return -(1 / 2) * np.linalg.norm(a) ** 2 - np.log(L.diagonal()).sum() - (Y.shape[0] / 2) * np.log(2 * np.pi)
 
 
 def log_prob_standard_normal(Y):
-    """
-    Compute log probability of the data Y under an unbiased standard Gaussian
-    """
+    """Compute log probability of the data Y under an unbiased standard Gaussian."""
     return -(1 / 2) * np.linalg.norm(Y) ** 2 - (Y.shape[0] / 2) * np.log(2 * np.pi)
