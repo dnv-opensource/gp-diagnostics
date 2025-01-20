@@ -47,7 +47,8 @@ def hist_residuals(y_pred_mean, y_pred_var, y_test, title="", showlegend=True):
         width=700,
         height=600,
         xaxis={
-            "title": "Standardised error", "titlefont": {"family": "Courier New, monospace", "size": 18, "color": "#7f7f7f"}
+            "title": "Standardised error",
+            "titlefont": {"family": "Courier New, monospace", "size": 18, "color": "#7f7f7f"},
         },
         yaxis={"title": "Density", "titlefont": {"family": "Courier New, monospace", "size": 18, "color": "#7f7f7f"}},
         legend={"yanchor": "top", "y": 0.99, "xanchor": "left", "x": 0.01},
@@ -55,7 +56,6 @@ def hist_residuals(y_pred_mean, y_pred_var, y_test, title="", showlegend=True):
 
     data = [hist, kde_dens, normal_dens]
     return go.Figure(data=data, layout=layout)
-
 
 
 def qq_residuals(y_pred_mean, y_pred_var, y_test, title="", showlegend=True):
@@ -104,7 +104,11 @@ def qq_residuals(y_pred_mean, y_pred_var, y_test, title="", showlegend=True):
     maxval = np.max([q_sample.min(), q_snorm.max()])
 
     line = go.Scatter(
-        x=[minval, maxval], y=[minval, maxval], mode="lines", line={"color": "rgb(0, 0, 0)", "dash": "dash"}, name="x = y"
+        x=[minval, maxval],
+        y=[minval, maxval],
+        mode="lines",
+        line={"color": "rgb(0, 0, 0)", "dash": "dash"},
+        name="x = y",
     )
 
     layout = go.Layout(
@@ -118,12 +122,14 @@ def qq_residuals(y_pred_mean, y_pred_var, y_test, title="", showlegend=True):
             "titlefont": {"family": "Courier New, monospace", "size": 18, "color": "#7f7f7f"},
             "range": [q_snorm.min() - 0.2, q_snorm.max() + 0.2],
         },
-        yaxis={"title": "Sample quantiles", "titlefont": {"family": "Courier New, monospace", "size": 18, "color": "#7f7f7f"}},
+        yaxis={
+            "title": "Sample quantiles",
+            "titlefont": {"family": "Courier New, monospace", "size": 18, "color": "#7f7f7f"},
+        },
     )
 
     data = [qq_scatter, qq_upper, qq_lower, line]
     return go.Figure(data=data, layout=layout)
-
 
 
 def add_traces_to_fig(fig, trace_list):
@@ -175,7 +181,11 @@ def pred_vs_error(y_pred_mean, y_pred_var, y_test, title="", showlegend=True):
     )
 
     line = go.Scatter(
-        x=[minval, maxval], y=[minval, maxval], mode="lines", line={"color": "rgb(0, 0, 0)", "dash": "dash"}, name="x = y"
+        x=[minval, maxval],
+        y=[minval, maxval],
+        mode="lines",
+        line={"color": "rgb(0, 0, 0)", "dash": "dash"},
+        name="x = y",
     )
 
     layout = go.Layout(
@@ -184,13 +194,18 @@ def pred_vs_error(y_pred_mean, y_pred_var, y_test, title="", showlegend=True):
         autosize=False,
         width=700,
         height=600,
-        xaxis={"title": "True value", "titlefont": {"family": "Courier New, monospace", "size": 18, "color": "#7f7f7f"}},
-        yaxis={"title": "Predicted value", "titlefont": {"family": "Courier New, monospace", "size": 18, "color": "#7f7f7f"}},
+        xaxis={
+            "title": "True value",
+            "titlefont": {"family": "Courier New, monospace", "size": 18, "color": "#7f7f7f"},
+        },
+        yaxis={
+            "title": "Predicted value",
+            "titlefont": {"family": "Courier New, monospace", "size": 18, "color": "#7f7f7f"},
+        },
     )
 
     data = [pred_bars, pred, line]
     return go.Figure(data=data, layout=layout)
-
 
 
 def pred_vs_error_perc(
@@ -224,13 +239,20 @@ def pred_vs_error_perc(
         mode="markers",
         marker={"size": 0, "color": "rgb(105, 144, 193)", "opacity": 0},
         error_y={
-            "type": "data", "array": (y_pred_perc_upper - y_pred_perc_lower) / 2, "visible": True, "color": "rgb(105, 144, 193)"
+            "type": "data",
+            "array": (y_pred_perc_upper - y_pred_perc_lower) / 2,
+            "visible": True,
+            "color": "rgb(105, 144, 193)",
         },
         name=f"{conf_interval}% intervals",
     )
 
     line = go.Scatter(
-        x=[minval, maxval], y=[minval, maxval], mode="lines", line={"color": "rgb(0, 0, 0)", "dash": "dash"}, name="x = y"
+        x=[minval, maxval],
+        y=[minval, maxval],
+        mode="lines",
+        line={"color": "rgb(0, 0, 0)", "dash": "dash"},
+        name="x = y",
     )
 
     layout = go.Layout(
@@ -239,13 +261,18 @@ def pred_vs_error_perc(
         autosize=False,
         width=700,
         height=600,
-        xaxis={"title": "True value", "titlefont": {"family": "Courier New, monospace", "size": 18, "color": "#7f7f7f"}},
-        yaxis={"title": "Predicted value", "titlefont": {"family": "Courier New, monospace", "size": 18, "color": "#7f7f7f"}},
+        xaxis={
+            "title": "True value",
+            "titlefont": {"family": "Courier New, monospace", "size": 18, "color": "#7f7f7f"},
+        },
+        yaxis={
+            "title": "Predicted value",
+            "titlefont": {"family": "Courier New, monospace", "size": 18, "color": "#7f7f7f"},
+        },
     )
 
     data = [pred_bars, pred, line]
     return go.Figure(data=data, layout=layout)
-
 
 
 def error_scatter(x, errors, title="", x_label="x", y_label="Standardized errors", showlegend=True):
@@ -300,7 +327,6 @@ def error_scatter(x, errors, title="", x_label="x", y_label="Standardized errors
 
     data = [errors, line_mid, line_upper, line_lower]
     return go.Figure(data=data, layout=layout)
-
 
 
 def gp_diagnostics(data, y_name, plot_labels=None, subplots=True):
