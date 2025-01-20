@@ -48,7 +48,7 @@ def mulinv_solve_rev(F, B, lower=True):
     return mulinv_solve(F, B.T, lower).T
 
 
-def symmetrify(A, upper=False):
+def symmetrify(A, upper=False) -> None:
     """Create symmetric matrix from triangular matrix."""
     triu = np.triu_indices_from(A, k=1)
     if upper:

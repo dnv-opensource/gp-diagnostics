@@ -195,7 +195,7 @@ def loo_cholesky(L, Y_train, check_args=True):
     return mean, cov, residuals_transformed
 
 
-def check_folds_indices(folds, n_max):
+def check_folds_indices(folds, n_max) -> None:
     """Check that the list of index subsets (list of lists) is valid.
 
     Args:
@@ -217,7 +217,7 @@ def check_folds_indices(folds, n_max):
     assert all_elements_set == set(range(n_max)), "the indices in 'folds' has to be a partition of range(n_max)"
 
 
-def check_lower_triangular(arr, argname="arr"):
+def check_lower_triangular(arr, argname="arr") -> None:
     """Check that the argument is a 2d numpy array which is lower triangular.
 
     Args:
@@ -231,7 +231,7 @@ def check_lower_triangular(arr, argname="arr"):
     assert checks.is_lower_triang(arr), f"{argname} must be lower triangular"
 
 
-def check_numeric_array(arr, dim, argname="arr"):
+def check_numeric_array(arr, dim, argname="arr") -> None:
     """Check that the argument is a numpy array of correct dimension.
 
     Args:
