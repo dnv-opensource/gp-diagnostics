@@ -7,14 +7,37 @@ authors = [
     { name = "magkri", email = "magnus.kristiansen@dnv.com" }
 ]
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "gpytorch>=1.13",
+    "numpy>=2.2.2",
+    "plotly>=5.24.1",
+    "scipy>=1.15.1",
+]
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+
+[dependency-groups]
+dev = [
+    "jupyter>=1.1.1",
+    "matplotlib>=3.10.0",
+    "pytest>=8.3.4",
+]
 
 [tool.ruff]
 line-length = 120
 
 [tool.ruff.lint]
 select = ["ALL"]
+ignore = [
+    "D",  # Docstrings
+    "ANN",  # Type annotations
+    "N803",  # Argument name should be lowercase
+    "COM812",  # Missing trailing comma
+    "ISC001",  # Single line implicit string concatination
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
