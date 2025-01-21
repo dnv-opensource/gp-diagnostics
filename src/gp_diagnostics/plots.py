@@ -1,3 +1,5 @@
+__all__ = ["hist_residuals", "qq_residuals", "pred_vs_error", "pred_vs_error_perc", "error_scatter", "gp_diagnostics"]
+
 import numpy as np
 import plotly
 import plotly.graph_objs as go

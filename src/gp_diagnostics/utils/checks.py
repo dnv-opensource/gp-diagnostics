@@ -1,3 +1,5 @@
+__all__ = ["is_numeric_np_array", "is_square", "is_lower_triang"]
+
 import numpy as np
 
 
