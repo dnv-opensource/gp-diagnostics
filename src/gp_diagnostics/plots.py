@@ -130,18 +130,6 @@ def qq_residuals(y_pred_mean, y_pred_var, y_test, title="", showlegend=True):
     return go.Figure(data=data, layout=layout)
 
 
-def add_traces_to_fig(fig, trace_list):
-    """Add traces to plotly figure.
-
-    fig - plotly figure
-    trace_list - list of new traces
-    """
-    data = list(fig.data) + trace_list
-    layout = fig.layout
-
-    return go.Figure(data=data, layout=layout)
-
-
 def pred_vs_error(y_pred_mean, y_pred_var, y_test, title="", showlegend=True):
     """Plot prediction with error bars as a function of true value
     Input:
