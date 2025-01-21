@@ -42,12 +42,12 @@ def multifold(K, Y_train, folds, noise_variance=0, check_args=True):
     if check_args:
         check_numeric_array(Y_train, 1, "Y_train")  # Check that Y_train is a 1d numeric array
         check_numeric_array(K, 2, "K")  # Check that K is a 2d array
-        assert (
-            K.shape[0] == Y_train.shape[0] and K.shape[1] == Y_train.shape[0]
-        ), f"The size of K {K.shape} is not compatible with Y_train {Y_train.shape}"  # Check that K has correct size
-        assert (
-            noise_variance >= 0
-        ), "noise_variance must be non-negative"  # Check that the noise variance is non-negative
+        assert K.shape[0] == Y_train.shape[0] and K.shape[1] == Y_train.shape[0], (
+            f"The size of K {K.shape} is not compatible with Y_train {Y_train.shape}"
+        )  # Check that K has correct size
+        assert noise_variance >= 0, (
+            "noise_variance must be non-negative"
+        )  # Check that the noise variance is non-negative
         check_folds_indices(folds, Y_train.shape[0])  # Check that the list of index subsets (list of lists) is valid
 
     # Try to compute the lower triangular cholesky factor
@@ -144,12 +144,12 @@ def loo(K, Y_train, noise_variance=0, check_args=True):
     if check_args:
         check_numeric_array(Y_train, 1, "Y_train")  # Check that Y_train is a 1d numeric array
         check_numeric_array(K, 2, "K")  # Check that K is a 2d array
-        assert (
-            K.shape[0] == Y_train.shape[0] and K.shape[1] == Y_train.shape[0]
-        ), f"The size of K {K.shape} is not compatible with Y_train {Y_train.shape}"  # Check that K has correct size
-        assert (
-            noise_variance >= 0
-        ), "noise_variance must be non-negative"  # Check that the noise variance is non-negative
+        assert K.shape[0] == Y_train.shape[0] and K.shape[1] == Y_train.shape[0], (
+            f"The size of K {K.shape} is not compatible with Y_train {Y_train.shape}"
+        )  # Check that K has correct size
+        assert noise_variance >= 0, (
+            "noise_variance must be non-negative"
+        )  # Check that the noise variance is non-negative
 
     # Try to compute the lower triangular cholesky factor
     L = try_chol(K, noise_variance, "loo")
@@ -221,9 +221,9 @@ def check_folds_indices(folds, n_max) -> None:
     assert [] not in folds, "'folds' has to be a list of lists of integers"
 
     all_elements_set = set(itertools.chain(*folds))
-    assert all(
-        np.issubdtype(type(x), np.integer) for x in all_elements_set
-    ), "'folds' has to be a list of lists of integers"
+    assert all(np.issubdtype(type(x), np.integer) for x in all_elements_set), (
+        "'folds' has to be a list of lists of integers"
+    )
     assert all_elements_set == set(range(n_max)), "the indices in 'folds' has to be a partition of range(n_max)"
 
 

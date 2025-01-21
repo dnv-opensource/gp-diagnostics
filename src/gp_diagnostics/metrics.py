@@ -33,12 +33,12 @@ def evaluate_GP(K, Y_train, folds=None, noise_variance=0, check_args=True):
     if check_args:
         check_numeric_array(Y_train, 1, "Y_train")  # Check that Y_train is a 1d numeric array
         check_numeric_array(K, 2, "K")  # Check that K is a 2d array
-        assert (
-            K.shape[0] == Y_train.shape[0] and K.shape[1] == Y_train.shape[0]
-        ), f"The size of K {K.shape} is not compatible with Y_train {Y_train.shape}"  # Check that K has correct size
-        assert (
-            noise_variance >= 0
-        ), "noise_variance must be non-negative"  # Check that the noise variance is non-negative
+        assert K.shape[0] == Y_train.shape[0] and K.shape[1] == Y_train.shape[0], (
+            f"The size of K {K.shape} is not compatible with Y_train {Y_train.shape}"
+        )  # Check that K has correct size
+        assert noise_variance >= 0, (
+            "noise_variance must be non-negative"
+        )  # Check that the noise variance is non-negative
 
         if folds is not None:
             check_folds_indices(
