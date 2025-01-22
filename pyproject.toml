@@ -41,3 +41,8 @@ ignore = [
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101"]  # Ignore assert statements in tests
+"!src/**.py" = ["D"]  # Ignore docstrings everywhere except for the `src/` directory.
+"examples/*" = ["T201"]  # Ignore print statement violations in examples
