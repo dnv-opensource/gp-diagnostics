@@ -14,12 +14,12 @@ def test_is_numeric_np_array():
     assert is_numeric_np_array(np.array(200))
 
     # These are not ok
-    assert is_numeric_np_array(np.array([[1, 2, 2.3], [0, 0.001]], dtype=object)) == False
-    assert is_numeric_np_array(np.array(None)) == False
-    assert is_numeric_np_array(np.array([[1, 2, 2.3], [0, 0.001, "a"]])) == False
-    assert is_numeric_np_array("a") == False
-    assert is_numeric_np_array(50) == False
-    assert is_numeric_np_array([1, 2, 3]) == False
+    assert not is_numeric_np_array(np.array([[1, 2, 2.3], [0, 0.001]], dtype=object))
+    assert not is_numeric_np_array(np.array(None))
+    assert not is_numeric_np_array(np.array([[1, 2, 2.3], [0, 0.001, "a"]]))
+    assert not is_numeric_np_array("a")
+    assert not is_numeric_np_array(50)
+    assert not is_numeric_np_array([1, 2, 3])
 
 
 def test_is_square():
@@ -31,11 +31,11 @@ def test_is_square():
     assert is_square(np.ones(shape=(14, 14)))
 
     # These are not ok
-    assert is_square(np.ones(shape=(13, 14))) == False
-    assert is_square(np.ones(shape=(3, 2))) == False
-    assert is_square(np.ones(shape=(3, 3, 3))) == False
-    assert is_square(np.array(2)) == False
-    assert is_square(np.array([1, 2, 3])) == False
+    assert not is_square(np.ones(shape=(13, 14)))
+    assert not is_square(np.ones(shape=(3, 2)))
+    assert not is_square(np.ones(shape=(3, 3, 3)))
+    assert not is_square(np.array(2))
+    assert not is_square(np.array([1, 2, 3]))
 
 
 def test_is_lower_triang():
@@ -56,4 +56,4 @@ def test_is_lower_triang():
     # These are not ok
     arr = np.array([[1, 2, 2.3], [0, 2.2, 3], [0.1, 0, 4]])
 
-    assert is_lower_triang(arr) == False
+    assert not is_lower_triang(arr)
