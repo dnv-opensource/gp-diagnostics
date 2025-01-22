@@ -1,6 +1,6 @@
 import numpy as np
 
-from gp_diagnostics.utils.stats import *
+from gp_diagnostics.utils.stats import snorm_qq, split_test_train_fold
 
 
 def test_snorm_qq_equalR():

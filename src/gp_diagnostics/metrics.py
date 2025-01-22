@@ -2,8 +2,14 @@ __all__ = ["evaluate_GP", "evaluate_GP_cholesky", "log_prob_normal", "log_prob_s
 
 import numpy as np
 
-from gp_diagnostics.cv import *
-from gp_diagnostics.utils.linalg import triang_solve
+from gp_diagnostics.cv import (
+    check_folds_indices,
+    check_lower_triangular,
+    check_numeric_array,
+    loo_cholesky,
+    multifold_cholesky,
+)
+from gp_diagnostics.utils.linalg import triang_solve, try_chol
 
 
 def evaluate_GP(K, Y_train, folds=None, noise_variance=0, check_args=True):

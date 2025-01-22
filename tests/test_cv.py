@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 import torch
 
-from gp_diagnostics.cv import *
+from gp_diagnostics.cv import check_folds_indices, check_lower_triangular, check_numeric_array, loo, multifold
 from gp_diagnostics.utils.stats import split_test_train_fold
 from tests.utils import (
     ExactGPModel,

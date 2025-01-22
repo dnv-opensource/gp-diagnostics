@@ -1,6 +1,6 @@
 import numpy as np
 
-from gp_diagnostics.utils.checks import *
+from gp_diagnostics.utils.checks import is_lower_triang, is_numeric_np_array, is_square
 
 
 def test_is_numeric_np_array():

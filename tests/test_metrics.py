@@ -1,7 +1,7 @@
 import numpy as np
 from scipy import stats
 
-from gp_diagnostics.metrics import *
+from gp_diagnostics.metrics import log_prob_normal, log_prob_standard_normal
 
 
 def test_log_prob_normal():

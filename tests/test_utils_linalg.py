@@ -1,6 +1,6 @@
 import numpy as np
 
-from gp_diagnostics.utils.linalg import *
+from gp_diagnostics.utils.linalg import chol_inv, mulinv_solve, mulinv_solve_rev, traceprod, triang_solve
 
 
 def random_matrix(N, M, seed):
