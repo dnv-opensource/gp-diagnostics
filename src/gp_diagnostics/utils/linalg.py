@@ -83,13 +83,14 @@ def try_chol(K, noise_variance, fun_name):
     except np.linalg.LinAlgError:
         warnings.warn(
             f"Could not compute Cholesky decomposition in '{fun_name}'. The matrix is likely not positive definite. "
-            "Consider adding jitter or a fallback approach. Returning None."
+            "Consider adding jitter or a fallback approach. Returning None.",
+            stacklevel=2,
         )
 
         try:
             min_eig = np.linalg.eig(A)[0].min()
-            warnings.warn(f"Smallest eigenvalue: {min_eig}")
+            warnings.warn(f"Smallest eigenvalue: {min_eig}", stacklevel=2)
         except np.linalg.LinAlgError:
-            warnings.warn("Could not compute smallest eigenvalue.")
+            warnings.warn("Could not compute smallest eigenvalue.", stacklevel=2)
 
     return None
