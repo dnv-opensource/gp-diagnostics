@@ -1,4 +1,4 @@
-__all__ = ["is_numeric_np_array", "is_square", "is_lower_triang"]
+__all__ = ["is_lower_triang", "is_numeric_np_array", "is_square"]
 
 import numpy as np
 

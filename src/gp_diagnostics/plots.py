@@ -1,4 +1,4 @@
-__all__ = ["hist_residuals", "qq_residuals", "pred_vs_error", "pred_vs_error_perc", "error_scatter", "gp_diagnostics"]
+__all__ = ["error_scatter", "gp_diagnostics", "hist_residuals", "pred_vs_error", "pred_vs_error_perc", "qq_residuals"]
 
 import numpy as np
 import plotly

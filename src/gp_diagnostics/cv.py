@@ -1,11 +1,11 @@
 __all__ = [
-    "multifold",
-    "multifold_cholesky",
-    "loo",
-    "loo_cholesky",
     "check_folds_indices",
     "check_lower_triangular",
     "check_numeric_array",
+    "loo",
+    "loo_cholesky",
+    "multifold",
+    "multifold_cholesky",
 ]
 
 import itertools

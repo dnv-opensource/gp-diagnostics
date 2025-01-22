@@ -1,4 +1,4 @@
-__all__ = ["triang_solve", "mulinv_solve", "mulinv_solve_rev", "symmetrify", "chol_inv", "traceprod", "try_chol"]
+__all__ = ["chol_inv", "mulinv_solve", "mulinv_solve_rev", "symmetrify", "traceprod", "triang_solve", "try_chol"]
 
 import warnings
 
