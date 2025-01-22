@@ -184,43 +184,43 @@ class TestFlattenFunction(unittest.TestCase):
         nested = [[1, 2, [3, 4]], 5, (6, 7), np.array([8, 9])]
         expected = [1, 2, 3, 4, 5, 6, 7, np.int64(8), np.int64(9)]
         result = list(flatten(nested))
-        self.assertEqual(result, expected)
+        assert result == expected
 
     def test_flatten_scalar(self):
         scalar = 10.5
         expected = [10.5]
         result = list(flatten(scalar))
-        self.assertEqual(result, expected)
+        assert result == expected
 
     def test_flatten_empty_list(self):
         nested = []
         expected = []
         result = list(flatten(nested))
-        self.assertEqual(result, expected)
+        assert result == expected
 
     def test_flatten_mixed_types(self):
         nested = [1, "two", [3, "four"], np.array([5.0, "six"])]
         expected = [1, "two", 3, "four", np.str_("5.0"), np.str_("six")]
         result = list(flatten(nested))
-        self.assertEqual(result, expected)
+        assert result == expected
 
     def test_flatten_non_iterable_within_iterable(self):
         nested = [1, 2, None, [3, 4]]
         expected = [1, 2, None, 3, 4]
         result = list(flatten(nested))
-        self.assertEqual(result, expected)
+        assert result == expected
 
     def test_flatten_strings_and_bytes(self):
         nested = ["hello", b"bytes", ["world", b"!"]]
         expected = ["hello", b"bytes", "world", b"!"]
         result = list(flatten(nested))
-        self.assertEqual(result, expected)
+        assert result == expected
 
     def test_flatten_deeply_nested(self):
         nested = [[[[1]], 2], [[[3, [4]]]]]
         expected = [1, 2, 3, 4]
         result = list(flatten(nested))
-        self.assertEqual(result, expected)
+        assert result == expected
 
     def test_flatten_custom_iterable(self):
         class CustomIterable:
@@ -233,4 +233,4 @@ class TestFlattenFunction(unittest.TestCase):
         nested = [1, CustomIterable([2, 3]), [4, CustomIterable([5, [6]])]]
         expected = [1, 2, 3, 4, 5, 6]
         result = list(flatten(nested))
-        self.assertEqual(result, expected)
+        assert result == expected
