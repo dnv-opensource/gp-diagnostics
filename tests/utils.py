@@ -73,29 +73,6 @@ class ExactGPModel(gpytorch.models.ExactGP):
 
             return mean, var
 
-    def print_parameters(self):
-        """
-        Print actual (not raw) parameters
-        """
-        print("{:50} {}".format("Constant mean", self.mean_module.constant.item()))
-        print("{:50} {}".format("Likelihood noise variance", self.likelihood.noise_covar.noise.item()))
-        print("{:50} {}".format("Kernel lengthscale", self.covar_module.base_kernel.lengthscale.detach().numpy()[0]))
-        print("{:50} {}".format("Kernel outputscale (variace)", self.covar_module.outputscale.item()))
-
-    def save(self):
-        """
-        Save GP model parameters to self.path
-        """
-        print("Saving model to: ", self.param_fname)
-        torch.save(self.state_dict(), self.param_fname)
-
-    def load(self):
-        """
-        Load GP model parameters from self.path
-        """
-        print("Loading model from: ", self.param_fname)
-        self.load_state_dict(torch.load(self.param_fname))
-
 
 def gpytorch_kernel_Matern(var, ls, nu=2.5):
     """
