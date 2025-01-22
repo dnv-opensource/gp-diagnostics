@@ -12,6 +12,7 @@ from tests.utils import (
     gpytorch_kernel_Matern,
     gpytorch_likelihood_gaussian,
     gpytorch_mean_constant,
+    flatten,
 )
 
 
@@ -520,18 +521,15 @@ def generate_cv_data(N_DIM=3, N_TRAIN=100, N_DUPLICATE_X=0, NUM_FOLDS=8, NOISE_V
         cv_residual_vars.append(v.numpy())
 
     # Concatenate and sort so that the residuals correspond to observation 1, 2, 3 etc.
-    cv_residual_means = np.array(cv_residual_means).flatten()
-    cv_residual_vars = np.array(cv_residual_vars).flatten()
-    if NUM_FOLDS != N_TRAIN:
-        cv_residual_means = np.concatenate(cv_residual_means)
-        cv_residual_vars = np.concatenate(cv_residual_vars)
+    cv_residual_means = np.array(list(flatten(cv_residual_means)))
+    cv_residual_vars = np.array(list(flatten(cv_residual_vars)))
 
     folds_concat = sum(FOLDS_INDICES, [])
     idx_sort = list(np.argsort(folds_concat))
     cv_residual_means = cv_residual_means[idx_sort]
     cv_residual_vars = cv_residual_vars[idx_sort]
 
-    return cv_residual_means, cv_residual_vars, FOLDS_INDICES, K.evaluate().numpy(), X_train, Y_train
+    return cv_residual_means, cv_residual_vars, FOLDS_INDICES, K.evaluate().detach().cpu().numpy(), X_train, Y_train
 
 
 def multitest_loo(N_DIM, N_TRAIN, NOISE_VAR, N_DUPLICATE_X):
@@ -546,8 +544,8 @@ def multitest_loo(N_DIM, N_TRAIN, NOISE_VAR, N_DUPLICATE_X):
     cv_residual_means, cv_residual_vars, folds, K, X_train, Y_train = generate_cv_data(
         N_DIM, N_TRAIN, N_DUPLICATE_X, N_TRAIN, NOISE_VAR, False
     )
-    cv_residual_means = np.array(cv_residual_means).flatten()
-    cv_residual_vars = np.array(cv_residual_vars).flatten()
+    cv_residual_means = np.array(list(flatten(cv_residual_means)))
+    cv_residual_vars = np.array(list(flatten(cv_residual_vars)))
 
     # Compute residuals from cholesky factor incl jitter
     gp_lik_var = max(1e-6, NOISE_VAR)

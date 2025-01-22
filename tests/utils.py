@@ -1,4 +1,8 @@
+import unittest
+from typing import Any, Generator
+
 import gpytorch
+import numpy as np
 import torch
 
 
@@ -129,3 +133,104 @@ def gpytorch_likelihood_gaussian(variance, variance_lb=1e-6, fixed=True):
     likelihood.requires_grad = not fixed
 
     return likelihood
+
+
+def flatten(data: Any) -> Generator[Any, None, None]:
+    """
+    Recursively flattens a nested iterable structure into a flat generator of elements.
+
+    This function takes any input and recursively iterates through it if it's iterable (excluding strings and bytes). It
+    yields individual scalar elements, effectively flattening nested structures such as lists, tuples, and NumPy arrays.
+    If the input is a single scalar value, it yields the value itself.
+
+    Args:
+        data: The input data to be flattened. It can be a scalar (e.g., int, float) or an iterable (e.g., list, tuple,
+              np.ndarray) containing nested iterables.
+
+    Yields:
+        The next scalar element in the flattened structure.
+
+    Examples:
+        >>> list(flatten([[1, 2, [3, 4]], 5, (6, 7), np.array([8, 9])]))
+        [1, 2, 3, 4, 5, 6, 7, np.int64(8), np.int64(9)]
+
+        >>> list(flatten(10.5))
+        [10.5]
+
+        >>> list(flatten([]))
+        []
+
+        >>> list(flatten([1, "two", [3, "four"], np.array([5.0, "six"])]))
+        [1, 'two', 3, 'four', np.str_('5.0'), np.str_('six')]
+    """
+    # Exclude strings and bytes to prevent them from being iterated character by character
+    if isinstance(data, str | bytes):
+        yield data
+        return
+
+    try:
+        iterator = iter(data)
+    except TypeError:
+        # If we can't get an iterator, it's a scalar -> yield it
+        yield data
+    else:
+        # If we can iterate, recurse on each item
+        for item in iterator:
+            yield from flatten(item)
+
+
+class TestFlattenFunction(unittest.TestCase):
+    def test_flatten_nested_list(self):
+        nested = [[1, 2, [3, 4]], 5, (6, 7), np.array([8, 9])]
+        expected = [1, 2, 3, 4, 5, 6, 7, np.int64(8), np.int64(9)]
+        result = list(flatten(nested))
+        self.assertEqual(result, expected)
+
+    def test_flatten_scalar(self):
+        scalar = 10.5
+        expected = [10.5]
+        result = list(flatten(scalar))
+        self.assertEqual(result, expected)
+
+    def test_flatten_empty_list(self):
+        nested = []
+        expected = []
+        result = list(flatten(nested))
+        self.assertEqual(result, expected)
+
+    def test_flatten_mixed_types(self):
+        nested = [1, "two", [3, "four"], np.array([5.0, "six"])]
+        expected = [1, "two", 3, "four", np.str_("5.0"), np.str_("six")]
+        result = list(flatten(nested))
+        self.assertEqual(result, expected)
+
+    def test_flatten_non_iterable_within_iterable(self):
+        nested = [1, 2, None, [3, 4]]
+        expected = [1, 2, None, 3, 4]
+        result = list(flatten(nested))
+        self.assertEqual(result, expected)
+
+    def test_flatten_strings_and_bytes(self):
+        nested = ["hello", b"bytes", ["world", b"!"]]
+        expected = ["hello", b"bytes", "world", b"!"]
+        result = list(flatten(nested))
+        self.assertEqual(result, expected)
+
+    def test_flatten_deeply_nested(self):
+        nested = [[[[1]], 2], [[[3, [4]]]]]
+        expected = [1, 2, 3, 4]
+        result = list(flatten(nested))
+        self.assertEqual(result, expected)
+
+    def test_flatten_custom_iterable(self):
+        class CustomIterable:
+            def __init__(self, items):
+                self.items = items
+
+            def __iter__(self):
+                return iter(self.items)
+
+        nested = [1, CustomIterable([2, 3]), [4, CustomIterable([5, [6]])]]
+        expected = [1, 2, 3, 4, 5, 6]
+        result = list(flatten(nested))
+        self.assertEqual(result, expected)
