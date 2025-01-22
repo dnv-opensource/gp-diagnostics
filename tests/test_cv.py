@@ -1,3 +1,5 @@
+import functools
+import operator
 import random
 
 import gpytorch
@@ -524,7 +526,7 @@ def generate_cv_data(N_DIM=3, N_TRAIN=100, N_DUPLICATE_X=0, NUM_FOLDS=8, NOISE_V
     cv_residual_means = np.array(list(flatten(cv_residual_means)))
     cv_residual_vars = np.array(list(flatten(cv_residual_vars)))
 
-    folds_concat = sum(FOLDS_INDICES, [])
+    folds_concat = functools.reduce(operator.iadd, FOLDS_INDICES, [])
     idx_sort = list(np.argsort(folds_concat))
     cv_residual_means = cv_residual_means[idx_sort]
     cv_residual_vars = cv_residual_vars[idx_sort]
