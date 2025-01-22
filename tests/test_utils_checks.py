@@ -14,7 +14,7 @@ def test_is_numeric_np_array():
     assert is_numeric_np_array(np.array(200))
 
     # These are not ok
-    assert is_numeric_np_array(np.array([[1, 2, 2.3], [0, 0.001]])) == False
+    assert is_numeric_np_array(np.array([[1, 2, 2.3], [0, 0.001]], dtype=object)) == False
     assert is_numeric_np_array(np.array(None)) == False
     assert is_numeric_np_array(np.array([[1, 2, 2.3], [0, 0.001, "a"]])) == False
     assert is_numeric_np_array("a") == False
