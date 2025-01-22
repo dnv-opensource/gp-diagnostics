@@ -9,10 +9,10 @@ from gp_diagnostics.cv import *
 from gp_diagnostics.utils.stats import split_test_train_fold
 from tests.utils import (
     ExactGPModel,
+    flatten,
     gpytorch_kernel_Matern,
     gpytorch_likelihood_gaussian,
     gpytorch_mean_constant,
-    flatten,
 )
 
 
