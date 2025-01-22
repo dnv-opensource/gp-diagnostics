@@ -8,3 +8,5 @@
   - [ ] `utils.linalg.mulinv_solve_rev`
   - [ ] `utils.stats.split_test_train_fold` is only used as a utility for testing
 - [ ] Remove asserts from library code
+- [ ] Move checks from `cv` to `utils.checks`?
+- [ ] Only expose things that are intended to be used by users
