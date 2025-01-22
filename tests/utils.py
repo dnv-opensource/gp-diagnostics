@@ -14,7 +14,7 @@ class ExactGPModel(gpytorch.models.ExactGP):
     """
 
     def __init__(self, train_x, train_y, mean_module, covar_module, likelihood, path, name):
-        super(ExactGPModel, self).__init__(train_x, train_y, likelihood)
+        super().__init__(train_x, train_y, likelihood)
 
         # For saving and loading
         self.path = path
