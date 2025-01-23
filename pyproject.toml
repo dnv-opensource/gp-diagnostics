@@ -1,7 +1,7 @@
 [project]
 name = "gp-diagnostics"
 version = "0.1.0"
-description = "Add your description here"
+description = "Tools for diagnosing Gaussian process models"
 readme = "README.md"
 authors = [
     { name = "magkri", email = "magnus.kristiansen@dnv.com" }
