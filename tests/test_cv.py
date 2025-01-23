@@ -532,7 +532,7 @@ def generate_cv_data(N_DIM=3, N_TRAIN=100, N_DUPLICATE_X=0, NUM_FOLDS=8, NOISE_V
     cv_residual_means = cv_residual_means[idx_sort]
     cv_residual_vars = cv_residual_vars[idx_sort]
 
-    return cv_residual_means, cv_residual_vars, FOLDS_INDICES, K.evaluate().detach().cpu().numpy(), X_train, Y_train
+    return cv_residual_means, cv_residual_vars, FOLDS_INDICES, K.to_dense().detach().cpu().numpy(), X_train, Y_train
 
 
 def multitest_loo(N_DIM, N_TRAIN, NOISE_VAR, N_DUPLICATE_X):
