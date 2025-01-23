@@ -1,0 +1,158 @@
+# gp-diagnostics
+
+**gp-diagnostics** is a Python library for diagnosing Gaussian Process (GP) models. It provides tools for advanced
+cross-validation, residual analysis, and visualization to support the evaluation and interpretation of GP regression
+models.
+
+---
+
+## Key Features
+
+- **Cross-Validation**  
+  - **Leave-One-Out (LOO)** or **Multifold** CV for GP regressions with optional fixed observational noise.  
+  - Fast computation of CV residuals (including covariance) based on the approach by
+  [Ginsbourger and Schaerer (2021)](https://arxiv.org/abs/2101.03108).  
+  - Cholesky-based implementations with fallback checks for matrix definiteness.
+
+- **GP Evaluation Metrics**  
+  - Functions to compute **log marginal likelihood**, **pseudo-likelihood** (for CV), and **mean squared error**.  
+  - Easy integration with existing GP code to measure model performance and residual normality.
+
+- **Diagnostic Plots**
+  - **Histogram of residuals**, **QQ plots**, **predictions vs. true** values, and more.  
+  - Interactive **Plotly** figures for easy exploration and diagnostics.
+
+---
+
+## Installation
+
+Below are two ways to install **gp-diagnostics** into your current project (using `pip` or
+[`uv`](https://docs.astral.sh/uv/)). Since the package is not yet published on PyPI, you must install directly from this
+repository.
+
+---
+
+### Option 1: Install with `pip`
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/dnv-opensource/gp-diagnostics.git
+   ```
+2. Install:
+   ```bash
+   pip install gp-diagnostics/
+   ```
+> **Note**  
+> - This installs **only** the core dependencies required to use the package (no dev deps).
+
+### Option 2: Install with `uv`
+
+```bash
+uv add "gp-diagnostics @ git+https://github.com/dnv-opensource/gp-diagnostics"
+```
+
+> **Note**
+> - This installs the package with **all** dependencies (including dev deps). Use `--no-dev` to exclude dev dependencies.
+
+---
+
+## Usage
+
+Here is a brief example demonstrating leave-one-out (LOO) cross-validation on a Gaussian Process model.  
+For a fully worked example (including multifold CV and detailed plotting), see
+[examples/example.py](examples/example.py).
+
+```python
+import gpytorch
+import torch
+
+# gp-diagnostics modules
+from gp_diagnostics.cv import loo
+from gp_diagnostics.metrics import evaluate_GP
+
+# 1. Build synthetic covariance matrix (K) & data (Y)
+#    For example, a simple RBF or Matern GP:
+N = 10
+x = torch.linspace(0, 1, N).view(-1, 1)
+kernel = gpytorch.kernels.ScaleKernel(gpytorch.kernels.MaternKernel(nu=2.5))
+K = kernel(x).to_dense()  # NxN prior covariance
+Y = torch.distributions.MultivariateNormal(torch.zeros(N), K).sample()
+
+# 2. (Optional) Add observational noise
+noise_var = 0.01
+
+# 3. Perform LOO cross-validation
+loo_mean, loo_cov, residuals_transformed = loo(K.detach().numpy(), Y.detach().numpy(), noise_variance=noise_var)
+
+# 4. Compute diagnostic metrics
+metrics = evaluate_GP(K.detach().numpy(), Y.detach().numpy(), noise_variance=noise_var)
+print("Log Marginal Likelihood:", metrics["log_marginal_likelihood"])
+print("Pseudo-Likelihood (CV): ", metrics["log_pseudo_likelihood"])
+print("MSE:", metrics["MSE"])
+```
+
+---
+
+## Core Modules
+
+**1. `cv.py`**  
+- `loo()`: Leave-One-Out CV residuals and covariance.  
+- `multifold()`: Multifold CV for grouped data (e.g., multiple time series).  
+- Both handle GP prior covariance plus optional noise variance.
+
+**2. `metrics.py`**  
+- `evaluate_GP()`: Calculates log marginal likelihood, pseudo-likelihood, and MSE.  
+- `log_prob_normal()` and `log_prob_standard_normal()`: Useful log probability helpers.
+
+**3. `plots.py`**  
+- Plotly-based functions to visualize residuals (histogram, QQ), predictive intervals, etc.  
+- `qq_residuals()`, `hist_residuals()`, `pred_vs_error()`, and more for quick diagnostics.
+
+**4. `utils`**  
+- **`checks.py`**: Validations (e.g., numeric array, lower-triangular).  
+- **`linalg.py`**: Cholesky utilities, triangular solves, matrix inversion.  
+- **`stats.py`**: QQ data generation, partitioning data folds, etc.
+
+---
+
+## Testing
+
+All tests live under the `tests/` directory. To run them:
+
+```bash
+# With pytest:
+pytest
+
+# Or with tox (runs multiple Python versions, if available):
+tox
+```
+
+---
+
+## Authors
+
+- Christian Agrell ([christian.agrell@dnv.com](mailto\:christian.agrell@dnv.com))
+- Magnus Kristiansen ([magnus.kristiansen@dnv.com](mailto\:magnus.kristiansen@dnv.com))
+
+---
+
+## License
+
+[MIT License](LICENSE)  
+&copy; 2024 [DNV](https://www.dnv.com). See [LICENSE](LICENSE) for details.
+
+---
+
+## Contributing
+
+Please feel free to open [issues](https://github.com/dnv-opensource/gp-diagnostics/issues) or submit pull requests if
+you have ideas for improvements or bug fixes.  
+
+For local development:
+
+1. [Fork](https://github.com/dnv-opensource/gp-diagnostics/fork) or clone the repository.  
+2. Create a feature branch: `git checkout -b feature/new-idea`.  
+3. Implement your changes and add tests.  
+4. Submit a pull request to `main` when ready.
+
+---
