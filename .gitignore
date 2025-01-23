@@ -11,3 +11,10 @@ wheels/
 
 # PyCharm files
 .idea/
+
+# testing
+.pytest_cache/
+.tox/
+
+# ruff
+.ruff_cache/
