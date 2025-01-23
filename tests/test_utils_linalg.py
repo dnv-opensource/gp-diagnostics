@@ -26,7 +26,6 @@ def test_triang_solve():
     # Generate matrices
     L = random_lower_triang_matrix(N, 42)
     B = random_matrix(N, M, 43)
-    # A = L.dot(L.T)
 
     # Solve L*X = B and check
     X = triang_solve(L, B, lower=True, trans=False)
