@@ -478,7 +478,8 @@ def generate_cv_data(N_DIM=3, N_TRAIN=100, N_DUPLICATE_X=0, NUM_FOLDS=8, NOISE_V
         FOLDS_INDICES = [[i] for i in range(N_TRAIN)]
 
     else:
-        # This sampling will not work if NUM_FOLDS is very big (wrt N_TRAIN), but we will only use it for some examples where NUM_FOLDS << N_TRAIN
+        # This sampling will not work if NUM_FOLDS is very big (wrt N_TRAIN), but we will only use it for some examples
+        # where NUM_FOLDS << N_TRAIN
         folds_end = np.random.multinomial(N_TRAIN, np.ones(NUM_FOLDS) / NUM_FOLDS, size=1)[
             0
         ].cumsum()  # last index of each fold
