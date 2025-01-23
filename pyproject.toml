@@ -7,6 +7,7 @@ authors = [
     { name = "magkri", email = "magnus.kristiansen@dnv.com" }
 ]
 requires-python = ">=3.12"
+license = {file = "LICENSE"}
 dependencies = [
     "gpytorch>=1.13",
     "numpy>=2.2.2",
