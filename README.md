@@ -32,27 +32,32 @@ repository.
 
 ---
 
-### Option 1: Install with `pip`
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/dnv-opensource/gp-diagnostics.git
-   ```
-2. Install:
-   ```bash
-   pip install gp-diagnostics/
-   ```
-> **Note**  
-> - This installs **only** the core dependencies required to use the package (no dev deps).
-
-### Option 2: Install with `uv`
+### Option 1: Install with `uv` (recommended)
 
 ```bash
 uv add "gp-diagnostics @ git+https://github.com/dnv-opensource/gp-diagnostics"
 ```
 
+### Option 2: Install with `pip`
+
+```bash
+pip install git+https://github.com/dnv-opensource/gp-diagnostics
+```
+
 > **Note**
-> - This installs the package with **all** dependencies (including dev deps). Use `--no-dev` to exclude dev dependencies.
+> - The two options above install **only** the core dependencies required to use the package, see below for development
+>   installation.
+
+## Development Installation
+
+If you plan to contribute to the package, or need the development dependencies (e.g. to run the examples), you can
+follow these steps:
+
+```bash
+git clone https://github.com/dnv-opensource/gp-diagnostics.git
+cd gp-diagnostics
+uv sync
+```
 
 ---
 
