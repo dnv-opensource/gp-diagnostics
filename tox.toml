@@ -10,9 +10,8 @@ env_list = [
 
 [env_run_base]
 description = "run unit tests"
-deps = [
-    "pytest>=8",
-]
+runner = "uv-venv-lock-runner"
+with_dev = true
 commands = [
     ["pytest"],
 ]
