@@ -50,8 +50,8 @@ pip install git+https://github.com/dnv-opensource/gp-diagnostics
 
 ## Development Installation
 
-If you plan to contribute to the package, or need the development dependencies (e.g. to run the examples), you can
-follow these steps:
+If you plan to contribute to the package, or need the development dependencies (e.g. to run the examples), you should do 
+the following:
 
 ```bash
 git clone https://github.com/dnv-opensource/gp-diagnostics.git
