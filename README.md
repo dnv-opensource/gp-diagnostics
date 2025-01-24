@@ -4,6 +4,8 @@
 cross-validation, residual analysis, and visualization to support the evaluation and interpretation of GP regression
 models.
 
+![Example plot](examples/normal_q_q_plot_of_transformed_loo_residuals.png)
+
 ---
 
 ## Key Features
