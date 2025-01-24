@@ -75,8 +75,7 @@ import torch
 from gp_diagnostics.cv import loo
 from gp_diagnostics.metrics import evaluate_GP
 
-# 1. Build synthetic covariance matrix (K) & data (Y)
-#    For example, a simple RBF or Matern GP:
+# 1. Build synthetic covariance matrix (K) & data (Y). For example, a simple RBF or Matern GP:
 N = 10
 x = torch.linspace(0, 1, N).view(-1, 1)
 kernel = gpytorch.kernels.ScaleKernel(gpytorch.kernels.MaternKernel(nu=2.5))
@@ -120,6 +119,20 @@ print("MSE:", metrics["MSE"])
 
 ---
 
+## Contributing
+
+Please feel free to open [issues](https://github.com/dnv-opensource/gp-diagnostics/issues) or submit pull requests if
+you have ideas for improvements or bug fixes.  
+
+For local development:
+
+1. [Fork](https://github.com/dnv-opensource/gp-diagnostics/fork) or clone the repository.  
+2. Create a feature branch: `git checkout -b feature/new-idea`.  
+3. Implement your changes and add tests.  
+4. Submit a pull request to `main` when ready.
+
+---
+
 ## Testing
 
 All tests live under the `tests/` directory. To run them:
@@ -145,19 +158,5 @@ tox
 
 [MIT License](LICENSE)  
 &copy; 2024 [DNV](https://www.dnv.com). See [LICENSE](LICENSE) for details.
-
----
-
-## Contributing
-
-Please feel free to open [issues](https://github.com/dnv-opensource/gp-diagnostics/issues) or submit pull requests if
-you have ideas for improvements or bug fixes.  
-
-For local development:
-
-1. [Fork](https://github.com/dnv-opensource/gp-diagnostics/fork) or clone the repository.  
-2. Create a feature branch: `git checkout -b feature/new-idea`.  
-3. Implement your changes and add tests.  
-4. Submit a pull request to `main` when ready.
 
 ---
