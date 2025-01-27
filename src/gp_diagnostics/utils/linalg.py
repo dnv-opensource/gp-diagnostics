@@ -1,57 +1,103 @@
-__all__ = ["chol_inv", "mulinv_solve", "mulinv_solve_rev", "symmetrify", "traceprod", "triang_solve", "try_chol"]
+"""Provides linear algebra utilities for Cholesky inversion, triangular solves, and related operations."""
+
+from __future__ import annotations
+
+__all__ = [
+    "chol_inv",
+    "mulinv_solve",
+    "mulinv_solve_rev",
+    "symmetrify",
+    "traceprod",
+    "triang_solve",
+    "try_chol",
+]
 
 import warnings
 
 import numpy as np
+import numpy.typing as npt
 from scipy import linalg
 
 
-def triang_solve(A, B, lower=True, trans=False):
-    """Wrapper for lapack dtrtrs function
-    DTRTRS solves a triangular system of the form
-        A * X = B  or  A**T * X = B,
-    where A is a triangular matrix of order N, and B is an N-by-NRHS
-    matrix.  A check is made to verify that A is nonsingular.
-    :param A: Matrix A(triangular)
-    :param B: Matrix B
-    :param lower: is matrix lower (true) or upper (false)
-    :param trans: calculate A**T * X = B (true) or A * X = B (false).
+def triang_solve(
+    A: npt.NDArray[np.float64],
+    B: npt.NDArray[np.float64],
+    *,
+    lower: bool = True,
+    trans: bool = False,
+) -> npt.NDArray[np.float64]:
+    """Solve a triangular system A*X = B or A^T*X = B, where A is triangular.
 
-    :returns: Solution to A * X = B or A**T * X = B
+    Args:
+        A: Triangular matrix of shape (N, N).
+        B: Right-hand side, shape (N, NRHS).
+        lower: If True, A is lower triangular; else upper.
+        trans: If True, solve A^T * X = B; else A * X = B.
+
+    Returns:
+        A solution matrix X, shape (N, NRHS).
     """
     unitdiag = False
-
     lower_num = 1 if lower else 0
     trans_num = 1 if trans else 0
     unitdiag_num = 1 if unitdiag else 0
 
-    A = np.asfortranarray(A)
+    A_fortran = np.asfortranarray(A)
+    return linalg.lapack.dtrtrs(
+        A_fortran,
+        B,
+        lower=lower_num,
+        trans=trans_num,
+        unitdiag=unitdiag_num,
+    )[0]
 
-    return linalg.lapack.dtrtrs(A, B, lower=lower_num, trans=trans_num, unitdiag=unitdiag_num)[0]
 
+def mulinv_solve(
+    F: npt.NDArray[np.float64],
+    B: npt.NDArray[np.float64],
+    *,
+    lower: bool = True,
+) -> npt.NDArray[np.float64]:
+    """Solve A*X = B for A = F * F^T. Typically used when F is lower triangular.
 
-def mulinv_solve(F, B, lower=True):
-    """Solve A*X = B where A = F*F^{T}.
+    Args:
+        F: Lower-triangular factor, shape (N, N).
+        B: Right-hand side, shape (N, NRHS).
+        lower: If True, F is lower triangular; else upper.
 
-    lower = True -> when F is LOWER triangular. This gives faster calculation
+    Returns:
+        The solution X, shape (N, NRHS).
     """
     tmp = triang_solve(F, B, lower=lower, trans=False)
     return triang_solve(F, tmp, lower=lower, trans=True)
 
 
-def mulinv_solve_rev(F, B, lower=True):
-    """Reversed version of mulinv_solve.
+def mulinv_solve_rev(
+    F: npt.NDArray[np.float64],
+    B: npt.NDArray[np.float64],
+    *,
+    lower: bool = True,
+) -> npt.NDArray[np.float64]:
+    """Solve X*A = B for A = F*F^T. Typically used when F is lower triangular.
 
-    Solves X*A = B where A = F*F^{T}
+    Args:
+        F: Lower-triangular factor, shape (N, N).
+        B: Right-hand side, shape (NRHS, N).
+        lower: If True, F is lower triangular; else upper.
 
-    lower = True -> when F is LOWER triangular. This gives faster calculation
-
+    Returns:
+        The solution X, shape (NRHS, N).
     """
-    return mulinv_solve(F, B.T, lower).T
+    return mulinv_solve(F, B.T, lower=lower).T
 
 
-def symmetrify(A, upper=False) -> None:
-    """Create symmetric matrix from triangular matrix."""
+def symmetrify(A: npt.NDArray[np.float64], *, upper: bool = False) -> None:
+    """Make matrix A symmetric by copying one triangle to the other in-place.
+
+    Args:
+        A: A square 2D numpy array.
+        upper: If True, copy the upper triangle to the lower; else vice versa.
+    """
     triu = np.triu_indices_from(A, k=1)
     if upper:
         A.T[triu] = A[triu]
@@ -59,38 +105,59 @@ def symmetrify(A, upper=False) -> None:
         A[triu] = A.T[triu]
 
 
-def chol_inv(L):
-    """Return inverse of matrix A = L*L.T where L is lower triangular
-    Uses LAPACK function dpotri.
+def chol_inv(L: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
+    """Return inverse of A = L * L^T, where L is lower triangular (via LAPACK dpotri).
+
+    Args:
+        L: Lower-triangular factor, shape (N, N).
+
+    Returns:
+        A_inv: The inverse of A, shape (N, N).
     """
-    A_inv, info = linalg.lapack.dpotri(L, lower=1)
+    A_inv, _info = linalg.lapack.dpotri(L, lower=1)
     symmetrify(A_inv)
     return A_inv
 
 
-def traceprod(A, B):
-    """Calculate trace(A*B) for two matrices A and B."""
-    return np.einsum("ij,ji->", A, B)
+def traceprod(A: npt.NDArray[np.float64], B: npt.NDArray[np.float64]) -> float:
+    """Compute trace(A @ B) using Einstein summation.
 
+    Args:
+        A: 2D numpy array.
+        B: 2D numpy array with shape (columns_A, something).
 
-def try_chol(K, noise_variance, fun_name):
-    """Try to compute the Cholesky decomposition of (K + noise_variance*I),
-    and raise a warning if it fails.
+    Returns:
+        Scalar trace of A*B.
     """
-    A = K + np.eye(K.shape[0]) * noise_variance
+    return float(np.einsum("ij,ji->", A, B))
+
+
+def try_chol(
+    K: npt.NDArray[np.float64],
+    noise_variance: float,
+    fun_name: str,
+) -> npt.NDArray[np.float64] | None:
+    """Attempt Cholesky of (K + noise_variance*I). If fail, warn and return None.
+
+    Args:
+        K: Covariance matrix, shape (N, N).
+        noise_variance: Noise variance to add to diagonal.
+        fun_name: Label for logging/warnings.
+
+    Returns:
+        The lower-triangular Cholesky factor or None if decomposition fails.
+    """
+    A = K + np.eye(K.shape[0], dtype=np.float64) * noise_variance
     try:
         return np.linalg.cholesky(A)
     except np.linalg.LinAlgError:
         warnings.warn(
-            f"Could not compute Cholesky decomposition in '{fun_name}'. The matrix is likely not positive definite. "
-            "Consider adding jitter or a fallback approach. Returning None.",
+            f"Could not compute Cholesky in '{fun_name}'; matrix likely not PD. Returning None.",
             stacklevel=2,
         )
-
         try:
             min_eig = np.linalg.eig(A)[0].min()
             warnings.warn(f"Smallest eigenvalue: {min_eig}", stacklevel=2)
         except np.linalg.LinAlgError:
             warnings.warn("Could not compute smallest eigenvalue.", stacklevel=2)
-
-    return None
+        return None

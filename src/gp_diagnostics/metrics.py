@@ -1,6 +1,14 @@
+"""Provides functions for evaluating GP models via log marginal likelihood, pseudo-likelihood, and MSE.
+
+Also includes convenience methods for log probability calculations under normal distributions.
+"""
+
+from __future__ import annotations
+
 __all__ = ["evaluate_GP", "evaluate_GP_cholesky", "log_prob_normal", "log_prob_standard_normal"]
 
 import numpy as np
+import numpy.typing as npt
 
 from gp_diagnostics.cv import (
     check_folds_indices,
@@ -12,90 +20,91 @@ from gp_diagnostics.cv import (
 from gp_diagnostics.utils.linalg import triang_solve, try_chol
 
 
-def evaluate_GP(K, Y_train, folds=None, noise_variance=0, check_args=True):
-    """Compute a set of evaluation metrics for GP regression with noiseless (noise_variance = 0) or fixed variance iid
-    Gaussian noise.
+def evaluate_GP(
+    K: npt.NDArray[np.float64],
+    Y_train: npt.NDArray[np.float64],
+    *,
+    folds: list[list[int]] | None = None,
+    noise_variance: float = 0,
+    check_args: bool = True,
+) -> dict[str, npt.NDArray[np.float64] | float]:
+    """Computes various GP evaluation metrics for the given covariance matrix and data.
 
-    Specify the list 'folds' of indices for multifold cross-validation (see documentation for cv.multifold), otherwise
-    leave-one-out is assumed.
+    Optionally uses multifold CV if folds are provided, otherwise does LOO.
 
     Args:
-        K (2d array): GP prior covariance matrix
-        Y_train (array): training observations
-        folds (list of lists): The index subsets for multifold cross-validation. Folds = None -> Leave-one-out
-        noise_variance: variance of the observational noise. Set noise_variance = 0 for noiseless observations
+        K: Prior covariance matrix, shape (n_samples, n_samples).
+        Y_train: Training observations, shape (n_samples,).
+        folds: List of index subsets for multifold CV. If None, does LOO.
+        noise_variance: Observational noise variance (>= 0).
+        check_args: If True, checks input validity.
 
-        check_args (bool): Check (assert) that arguments are well-specified before computation
-
-    Returns: a dict containing
-        log_marginal_likelihood: The log probability of Y_train
-        log_pseudo_likelihood: The log 'pseudo' likelihood is the sum of the log probabilities of each observation
-                               during cross-validation in the standard normal space
-        RMSE: The root mean squared error obtained by using the GP posterior mean as a deterministic prediction
-
-        (The residuals are also returned, for plotting and to check for normality)
-        residuals_mean: Mean of CV residuals
-        residuals_var: Variance of CV residuals
-        residuals_transformed: The residuals transformed to the standard normal space
+    Returns:
+        A dict with:
+         - "log_marginal_likelihood": float
+         - "log_pseudo_likelihood": float (sum of log-prob in the standard normal space for CV residuals)
+         - "MSE": float
+         - "residuals_mean": array of shape (n_samples,)
+         - "residuals_var": array of shape (n_samples,)
+         - "residuals_transformed": array of shape (n_samples,)
     """
-    # Check arguments
     if check_args:
-        check_numeric_array(Y_train, 1, "Y_train")  # Check that Y_train is a 1d numeric array
-        check_numeric_array(K, 2, "K")  # Check that K is a 2d array
+        check_numeric_array(Y_train, 1, "Y_train")
+        check_numeric_array(K, 2, "K")
         assert K.shape[0] == Y_train.shape[0] and K.shape[1] == Y_train.shape[0], (
             f"The size of K {K.shape} is not compatible with Y_train {Y_train.shape}"
-        )  # Check that K has correct size
-        assert noise_variance >= 0, (
-            "noise_variance must be non-negative"
-        )  # Check that the noise variance is non-negative
-
+        )
+        assert noise_variance >= 0, "noise_variance must be non-negative"
         if folds is not None:
-            check_folds_indices(
-                folds, Y_train.shape[0]
-            )  # Check that the list of index subsets (list of lists) is valid
+            check_folds_indices(folds, Y_train.shape[0])
 
-    # Try to compute the lower triangular cholesky factor
     L = try_chol(K, noise_variance, "evaluate_GP")
     if L is None:
-        return None
+        return {}
 
-    # Compute metrics and return
-    return evaluate_GP_cholesky(L, Y_train, folds, check_args=False)
+    return evaluate_GP_cholesky(L, Y_train, folds=folds, check_args=False)
 
 
-def evaluate_GP_cholesky(L, Y_train, folds=None, check_args=True):
-    """This is called by evaluate_GP() with the appropriate Cholesky factor:
-    LL^T = K + np.eye(K.shape[0])*noise_variance.
+def evaluate_GP_cholesky(
+    L: npt.NDArray[np.float64],
+    Y_train: npt.NDArray[np.float64],
+    *,
+    folds: list[list[int]] | None = None,
+    check_args: bool = True,
+) -> dict[str, npt.NDArray[np.float64] | float]:
+    """Performs GP evaluation metrics given a Cholesky factor of (K + noise*I).
+
+    Args:
+        L: Lower-triangular factor, shape (n_samples, n_samples).
+        Y_train: Observations, shape (n_samples,).
+        folds: If not None, multifold CV indices; else uses LOO.
+        check_args: Whether to verify argument shapes.
+
+    Returns:
+        A dictionary of metrics:
+         - "log_marginal_likelihood"
+         - "log_pseudo_likelihood"
+         - "MSE"
+         - "residuals_mean"
+         - "residuals_var"
+         - "residuals_transformed"
     """
-    # Check that arguments are ok
     if check_args:
-        check_lower_triangular(L, "L")  # Check that L is a lower triangular matrix
-        check_numeric_array(Y_train, 1, "Y_train")  # Check that Y_train is a 1d numeric array
+        check_lower_triangular(L, "L")
+        check_numeric_array(Y_train, 1, "Y_train")
         if folds is not None:
-            check_folds_indices(
-                folds, Y_train.shape[0]
-            )  # Check that the list of index subsets (list of lists) is valid
+            check_folds_indices(folds, Y_train.shape[0])
 
-    res = {}
+    res: dict[str, npt.NDArray[np.float64] | float] = {}
+    if folds is not None:
+        mean, cov, residuals_transformed = multifold_cholesky(L, Y_train, folds, check_args=False)
+    else:
+        mean, cov, residuals_transformed = loo_cholesky(L, Y_train, check_args=False)
 
-    # Compute CV residuals
-    mean, cov, residuals_transformed = (
-        multifold_cholesky(L, Y_train, folds, False) if folds is not None else loo_cholesky(L, Y_train, False)
-    )
-
-    # Compute log marginal likelihood
     res["log_marginal_likelihood"] = log_prob_normal(L, Y_train)
-
-    # Compute log pseudo likelihood - This is the log probability of the residuals in the standard normal space
-    # The sum of log probabilities of each observation in Y_train in the posterior GP, assuming that the corresponding
-    # fold has been left out,
-    # can be obtained by adding -0.5*log(det(cov)) = -log(chol(cov).diagonal()).sum() to res['log_pseudo_likelihood']
     res["log_pseudo_likelihood"] = log_prob_standard_normal(residuals_transformed)
+    res["MSE"] = float(np.linalg.norm(mean))
 
-    # Compute MSE
-    res["MSE"] = np.linalg.norm(mean)
-
-    # Append residuals
     res["residuals_mean"] = mean
     res["residuals_var"] = cov.diagonal()
     res["residuals_transformed"] = residuals_transformed
@@ -103,12 +112,27 @@ def evaluate_GP_cholesky(L, Y_train, folds=None, check_args=True):
     return res
 
 
-def log_prob_normal(L, Y):
-    """Compute log probability of the data Y under an unbiased Gaussian with covariance L*L^T."""
-    a = triang_solve(L, Y)  # La = Y
-    return -(1 / 2) * np.linalg.norm(a) ** 2 - np.log(L.diagonal()).sum() - (Y.shape[0] / 2) * np.log(2 * np.pi)
+def log_prob_normal(L: npt.NDArray[np.float64], Y: npt.NDArray[np.float64]) -> float:
+    """Computes log probability of data Y under Gaussian with covariance L*L^T.
+
+    Args:
+        L: Lower-triangular factor, shape (n_samples, n_samples).
+        Y: Data vector, shape (n_samples,).
+
+    Returns:
+        Scalar log probability of Y.
+    """
+    a = triang_solve(L, Y)
+    return -0.5 * np.linalg.norm(a) ** 2 - np.log(L.diagonal()).sum() - (Y.shape[0] / 2) * np.log(2 * np.pi)
 
 
-def log_prob_standard_normal(Y):
-    """Compute log probability of the data Y under an unbiased standard Gaussian."""
-    return -(1 / 2) * np.linalg.norm(Y) ** 2 - (Y.shape[0] / 2) * np.log(2 * np.pi)
+def log_prob_standard_normal(Y: npt.NDArray[np.float64]) -> float:
+    """Computes log probability of data Y under a standard normal distribution.
+
+    Args:
+        Y: Data vector, shape (n_samples,).
+
+    Returns:
+        The scalar log probability of Y under N(0, I).
+    """
+    return -0.5 * np.linalg.norm(Y) ** 2 - (Y.shape[0] / 2) * np.log(2 * np.pi)

@@ -1,56 +1,93 @@
-__all__ = ["error_scatter", "gp_diagnostics", "hist_residuals", "pred_vs_error", "pred_vs_error_perc", "qq_residuals"]
+"""Plotly-based functions for visualizing residuals, predictions, QQ plots, histograms, etc.
+
+Used to aid in GP diagnostics.
+"""
+
+from __future__ import annotations
+
+__all__ = [
+    "error_scatter",
+    "gp_diagnostics",
+    "hist_residuals",
+    "pred_vs_error",
+    "pred_vs_error_perc",
+    "qq_residuals",
+]
+
+from typing import TYPE_CHECKING
 
 import numpy as np
+import numpy.typing as npt
 import plotly
 import plotly.graph_objs as go
+from plotly.subplots import make_subplots
 from scipy.stats import gaussian_kde, norm
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 from gp_diagnostics.utils.stats import snorm_qq
 
 
-def hist_residuals(y_pred_mean, y_pred_var, y_test, title="", showlegend=True):
-    """Create histogram of residuals
-    Input:
-    y_pred_mean - prediction mean
-    y_pred_var - prediction variance
-    y_test - true y value
-    title - (optional)
-    Output:
-    fig - plotly figure.
+def hist_residuals(
+    y_pred_mean: npt.NDArray[np.float64],
+    y_pred_var: npt.NDArray[np.float64],
+    y_test: npt.NDArray[np.float64],
+    *,
+    title: str = "",
+    showlegend: bool = True,
+) -> plotly.graph_objs.Figure:
+    """Creates a Plotly histogram of standardized residuals with normal & KDE overlays.
+
+    Args:
+        y_pred_mean: Predicted means, shape (n_samples,).
+        y_pred_var: Predicted variances, shape (n_samples,).
+        y_test: True target values, shape (n_samples,).
+        title: Plot title.
+        showlegend: Whether to show the legend.
+
+    Returns:
+        A Plotly figure with a histogram of residuals.
     """
-    # defualt color etc..
     clr = "rgb(105, 144, 193)"
+    y_pred_std = np.sqrt(y_pred_var)
+    residuals_y = (y_pred_mean - y_test) / y_pred_std
 
-    # Calculate residuals
-    y_pred_std = np.power(y_pred_var, 0.5)
-    residuals_y = (y_pred_mean - y_test) / y_pred_std  # Standardized residuals
-
-    # Histogram
-    hist = go.Histogram(x=residuals_y, histnorm="probability density", marker_color=clr, opacity=0.5, name="residuals")
-
-    # Standard normal density
-    x_min, x_max = residuals_y.min(), residuals_y.max()
-    x = np.linspace(x_min, x_max, 100)
-    normal_dens = go.Scatter(
-        x=x, y=norm.pdf(x), mode="lines", name="standard normal density", line={"color": "black", "width": 1}
+    hist = go.Histogram(
+        x=residuals_y,
+        histnorm="probability density",
+        marker_color=clr,
+        opacity=0.5,
+        name="residuals",
     )
 
-    # kde
-    kde = gaussian_kde(residuals_y)
-    kde_dens = go.Scatter(x=x, y=kde(x), mode="lines", name="residuals kde", line={"color": clr, "width": 1})
+    x_min, x_max = float(residuals_y.min()), float(residuals_y.max())
+    x_points = np.linspace(x_min, x_max, 100)
 
-    # Layout
+    normal_dens = go.Scatter(
+        x=x_points,
+        y=norm.pdf(x_points),
+        mode="lines",
+        name="standard normal density",
+        line={"color": "black", "width": 1},
+    )
+    kde = gaussian_kde(residuals_y)
+    kde_dens = go.Scatter(
+        x=x_points,
+        y=kde(x_points),
+        mode="lines",
+        name="residuals kde",
+        line={"color": clr, "width": 1},
+    )
+
     layout = go.Layout(
         title=title,
         showlegend=showlegend,
         autosize=False,
         width=700,
         height=600,
-        xaxis={
-            "title": "Standardised error",
-            "titlefont": {"family": "Courier New, monospace", "size": 18, "color": "#7f7f7f"},
-        },
-        yaxis={"title": "Density", "titlefont": {"family": "Courier New, monospace", "size": 18, "color": "#7f7f7f"}},
+        xaxis={"title": "Standardised error"},
+        yaxis={"title": "Density"},
         legend={"yanchor": "top", "y": 0.99, "xanchor": "left", "x": 0.01},
     )
 
@@ -58,27 +95,38 @@ def hist_residuals(y_pred_mean, y_pred_var, y_test, title="", showlegend=True):
     return go.Figure(data=data, layout=layout)
 
 
-def qq_residuals(y_pred_mean, y_pred_var, y_test, title="", showlegend=True):
-    """Create QQ plot
-    Input:
-    y_pred_mean - prediction mean
-    y_pred_var - prediction variance
-    y_test - true y value
-    title - (optional)
-    Output:
-    fig - plotly figure.
-    """
-    # Calculate residuals
-    y_pred_std = np.power(y_pred_var, 0.5)
-    residuals_y = (y_pred_mean - y_test) / y_pred_std  # Standardized residuals
+def qq_residuals(
+    y_pred_mean: npt.NDArray[np.float64],
+    y_pred_var: npt.NDArray[np.float64],
+    y_test: npt.NDArray[np.float64],
+    *,
+    title: str = "",
+    showlegend: bool = True,
+) -> plotly.graph_objs.Figure:
+    """Creates a Plotly QQ-plot of standardized residuals vs. standard normal quantiles.
 
-    # Calculate QQ data
+    Args:
+        y_pred_mean: Predicted means, shape (n_samples,).
+        y_pred_var: Predicted variances, shape (n_samples,).
+        y_test: True target values, shape (n_samples,).
+        title: Plot title.
+        showlegend: Whether to show the legend.
+
+    Returns:
+        A Plotly Figure containing the QQ-plot.
+    """
+    y_pred_std = np.sqrt(y_pred_var)
+    residuals_y = (y_pred_mean - y_test) / y_pred_std
+
     q_sample, q_snorm, q_snorm_upper, q_snorm_lower = snorm_qq(residuals_y)
 
     qq_scatter = go.Scatter(
-        x=q_snorm, y=q_sample, mode="markers", marker={"size": 6, "color": "rgb(105, 144, 193)"}, name="Data"
+        x=q_snorm,
+        y=q_sample,
+        mode="markers",
+        marker={"size": 6, "color": "rgb(105, 144, 193)"},
+        name="Data",
     )
-
     qq_upper = go.Scatter(
         x=q_snorm_upper,
         y=q_sample,
@@ -87,7 +135,6 @@ def qq_residuals(y_pred_mean, y_pred_var, y_test, title="", showlegend=True):
         name="95% confidence band",
         legendgroup="conf",
     )
-
     qq_lower = go.Scatter(
         x=q_snorm_lower,
         y=q_sample,
@@ -98,8 +145,8 @@ def qq_residuals(y_pred_mean, y_pred_var, y_test, title="", showlegend=True):
         showlegend=False,
     )
 
-    minval = np.min([q_sample.min(), q_snorm.min()])
-    maxval = np.max([q_sample.min(), q_snorm.max()])
+    minval = float(min(q_snorm.min(), q_sample.min()))
+    maxval = float(max(q_snorm.max(), q_sample.max()))
 
     line = go.Scatter(
         x=[minval, maxval],
@@ -117,48 +164,60 @@ def qq_residuals(y_pred_mean, y_pred_var, y_test, title="", showlegend=True):
         height=600,
         xaxis={
             "title": "Standard normal quantiles",
-            "titlefont": {"family": "Courier New, monospace", "size": 18, "color": "#7f7f7f"},
             "range": [q_snorm.min() - 0.2, q_snorm.max() + 0.2],
         },
-        yaxis={
-            "title": "Sample quantiles",
-            "titlefont": {"family": "Courier New, monospace", "size": 18, "color": "#7f7f7f"},
-        },
+        yaxis={"title": "Sample quantiles"},
     )
 
     data = [qq_scatter, qq_upper, qq_lower, line]
     return go.Figure(data=data, layout=layout)
 
 
-def pred_vs_error(y_pred_mean, y_pred_var, y_test, title="", showlegend=True):
-    """Plot prediction with error bars as a function of true value
-    Input:
-    y_pred_mean - prediction mean
-    y_pred_var - prediction variance
-    y_test - true y value
-    Output:
-    fig - plotly figure.
+def pred_vs_error(
+    y_pred_mean: npt.NDArray[np.float64],
+    y_pred_var: npt.NDArray[np.float64],
+    y_test: npt.NDArray[np.float64],
+    *,
+    title: str = "",
+    showlegend: bool = True,
+) -> plotly.graph_objs.Figure:
+    """Creates a scatter plot comparing predicted vs. true values, with 95% error bars.
+
+    Args:
+        y_pred_mean: Predicted means, shape (n_samples,).
+        y_pred_var: Predicted variances, shape (n_samples,).
+        y_test: True target values, shape (n_samples,).
+        title: Plot title.
+        showlegend: Whether to show the legend.
+
+    Returns:
+        A Plotly Figure showing predicted vs. actual + 95% intervals.
     """
-    # Plot min/max
-    minval = np.min([y_pred_mean.min(), y_test.min()])
-    maxval = np.max([y_pred_mean.min(), y_test.max()])
+    minval = float(min(y_pred_mean.min(), y_test.min()))
+    maxval = float(max(y_pred_mean.max(), y_test.max()))
 
-    # Prediction standard deviation
-    y_pred_std = np.power(y_pred_var, 0.5)
+    y_pred_std = np.sqrt(y_pred_var)
+    num_std = 1.959963984540054
 
-    # Predictions
-    pred = go.Scatter(
-        x=y_test, y=y_pred_mean, mode="markers", marker={"size": 6, "color": "rgb(105, 144, 193)"}, name="Prediction"
+    pred_scatter = go.Scatter(
+        x=y_test,
+        y=y_pred_mean,
+        mode="markers",
+        marker={"size": 6, "color": "rgb(105, 144, 193)"},
+        name="Prediction",
     )
 
-    # Predictions with error bars
-    num_std = 1.959963984540054
     pred_bars = go.Scatter(
         x=y_test,
         y=y_pred_mean,
         mode="markers",
         marker={"size": 6, "color": "rgb(105, 144, 193)"},
-        error_y={"type": "data", "array": y_pred_std * num_std, "visible": True, "color": "rgb(105, 144, 193)"},
+        error_y={
+            "type": "data",
+            "array": y_pred_std * num_std,
+            "visible": True,
+            "color": "rgb(105, 144, 193)",
+        },
         name="95% intervals",
     )
 
@@ -176,51 +235,57 @@ def pred_vs_error(y_pred_mean, y_pred_var, y_test, title="", showlegend=True):
         autosize=False,
         width=700,
         height=600,
-        xaxis={
-            "title": "True value",
-            "titlefont": {"family": "Courier New, monospace", "size": 18, "color": "#7f7f7f"},
-        },
-        yaxis={
-            "title": "Predicted value",
-            "titlefont": {"family": "Courier New, monospace", "size": 18, "color": "#7f7f7f"},
-        },
+        xaxis={"title": "True value"},
+        yaxis={"title": "Predicted value"},
     )
 
-    data = [pred_bars, pred, line]
+    data = [pred_bars, pred_scatter, line]
     return go.Figure(data=data, layout=layout)
 
 
 def pred_vs_error_perc(
-    y_pred_mean, y_pred_perc_lower, y_pred_perc_upper, y_test, conf_interval, title="", showlegend=True
-):
-    """Plot prediction with error bars as a function of true value -- using percentile data.
+    y_pred_mean: npt.NDArray[np.float64],
+    y_pred_perc_lower: npt.NDArray[np.float64],
+    y_pred_perc_upper: npt.NDArray[np.float64],
+    y_test: npt.NDArray[np.float64],
+    conf_interval: float,
+    *,
+    title: str = "",
+    showlegend: bool = True,
+) -> plotly.graph_objs.Figure:
+    """Creates a scatter plot of predicted vs. true values with percentile error bars.
 
-    Input:
-    y_pred_mean - prediction mean
-    y_pred_perc_lower, y_pred_perc_upper - prediction percentiles
-    y_test - true y value
-    conf_interval - % covered by lower/upper percentiles (upper - lower)
-    Output:
-    fig - plotly figure
+    Args:
+        y_pred_mean: Predicted means, shape (n_samples,).
+        y_pred_perc_lower: Lower percentile predictions, shape (n_samples,).
+        y_pred_perc_upper: Upper percentile predictions, shape (n_samples,).
+        y_test: True target values, shape (n_samples,).
+        conf_interval: The percentile coverage (e.g. 95).
+        title: Plot title.
+        showlegend: Whether to show the legend.
+
+    Returns:
+        A Plotly Figure with predicted vs. actual scatter + percentile error bars.
     """
-    # Plot min/max
-    minval = np.min([y_pred_mean.min(), y_test.min()])
-    maxval = np.max([y_pred_mean.min(), y_test.max()])
+    minval = float(min(y_pred_mean.min(), y_test.min()))
+    maxval = float(max(y_pred_mean.max(), y_test.max()))
 
-    # Predictions
-    pred = go.Scatter(
-        x=y_test, y=y_pred_mean, mode="markers", marker={"size": 6, "color": "rgb(105, 144, 193)"}, name="Prediction"
+    pred_scatter = go.Scatter(
+        x=y_test,
+        y=y_pred_mean,
+        mode="markers",
+        marker={"size": 6, "color": "rgb(105, 144, 193)"},
+        name="Prediction",
     )
 
-    # Predictions with error bars
     pred_bars = go.Scatter(
         x=y_test,
-        y=(y_pred_perc_upper + y_pred_perc_lower) / 2,
+        y=(y_pred_perc_upper + y_pred_perc_lower) / 2.0,
         mode="markers",
         marker={"size": 0, "color": "rgb(105, 144, 193)", "opacity": 0},
         error_y={
             "type": "data",
-            "array": (y_pred_perc_upper - y_pred_perc_lower) / 2,
+            "array": (y_pred_perc_upper - y_pred_perc_lower) / 2.0,
             "visible": True,
             "color": "rgb(105, 144, 193)",
         },
@@ -241,34 +306,58 @@ def pred_vs_error_perc(
         autosize=False,
         width=700,
         height=600,
-        xaxis={
-            "title": "True value",
-            "titlefont": {"family": "Courier New, monospace", "size": 18, "color": "#7f7f7f"},
-        },
-        yaxis={
-            "title": "Predicted value",
-            "titlefont": {"family": "Courier New, monospace", "size": 18, "color": "#7f7f7f"},
-        },
+        xaxis={"title": "True value"},
+        yaxis={"title": "Predicted value"},
     )
 
-    data = [pred_bars, pred, line]
+    data = [pred_bars, pred_scatter, line]
     return go.Figure(data=data, layout=layout)
 
 
-def error_scatter(x, errors, title="", x_label="x", y_label="Standardized errors", showlegend=True):
-    """Error scatter plot with 95% interval."""
-    errors = go.Scatter(x=x, y=errors, mode="markers", marker={"size": 6, "color": "rgb(105, 144, 193)"}, name=y_label)
+def error_scatter(
+    x: npt.NDArray[np.float64],
+    errors: npt.NDArray[np.float64],
+    *,
+    title: str = "",
+    x_label: str = "x",
+    y_label: str = "Standardized errors",
+    showlegend: bool = True,
+) -> plotly.graph_objs.Figure:
+    """Creates a scatter plot of standardized errors vs. some variable x, with 95% reference lines.
 
-    num_std = 1.959963984540054  # For 95% interval
-    min_x = x.min()
-    max_x = x.max()
-    margin = (max_x - min_x) * 0.025  # For plotting
+    Args:
+        x: Horizontal-axis variable, shape (n_samples,).
+        errors: Standardized error values, shape (n_samples,).
+        title: Plot title.
+        x_label: Label for x-axis.
+        y_label: Label for y-axis.
+        showlegend: Whether to display the legend.
+
+    Returns:
+        A Plotly Figure of the scatter + reference lines at ±1.96 std dev.
+    """
+    scatter_points = go.Scatter(
+        x=x,
+        y=errors,
+        mode="markers",
+        marker={"size": 6, "color": "rgb(105, 144, 193)"},
+        name=y_label,
+    )
+
+    num_std = 1.959963984540054
+    min_x = float(x.min())
+    max_x = float(x.max())
+    margin = (max_x - min_x) * 0.025
     x_line = [min_x - margin, max_x + margin]
 
     line_mid = go.Scatter(
-        x=x_line, y=[0, 0], mode="lines", line={"color": "rgb(0, 0, 0)", "dash": "dash"}, name="", showlegend=False
+        x=x_line,
+        y=[0, 0],
+        mode="lines",
+        line={"color": "rgb(0, 0, 0)", "dash": "dash"},
+        name="",
+        showlegend=False,
     )
-
     line_upper = go.Scatter(
         x=x_line,
         y=[num_std, num_std],
@@ -277,7 +366,6 @@ def error_scatter(x, errors, title="", x_label="x", y_label="Standardized errors
         name="95% interval",
         legendgroup="conf",
     )
-
     line_lower = go.Scatter(
         x=x_line,
         y=[-num_std, -num_std],
@@ -294,136 +382,141 @@ def error_scatter(x, errors, title="", x_label="x", y_label="Standardized errors
         autosize=False,
         width=700,
         height=600,
-        xaxis={
-            "title": x_label,
-            "titlefont": {"family": "Courier New, monospace", "size": 18, "color": "#7f7f7f"},
-            "range": [min_x - margin, max_x + margin],
-        },
-        yaxis={"title": y_label, "titlefont": {"family": "Courier New, monospace", "size": 18, "color": "#7f7f7f"}},
+        xaxis={"title": x_label, "range": [x_line[0], x_line[1]]},
+        yaxis={"title": y_label},
     )
 
-    data = [errors, line_mid, line_upper, line_lower]
+    data = [scatter_points, line_mid, line_upper, line_lower]
     return go.Figure(data=data, layout=layout)
 
 
-def gp_diagnostics(data, y_name, plot_labels=None, subplots=True):
-    """Returns list of plotly figures for GP diagnostics
-    Inputs:
+def gp_diagnostics(
+    data: pd.DataFrame,
+    y_name: str,
+    *,
+    plot_labels: dict[str, str] | None = None,
+    subplots: bool = True,
+) -> list[plotly.graph_objs.Figure]:
+    """Creates a set of Plotly figures for GP diagnostics (QQ, pred vs. true, error scatter).
 
-    data - Pandas dataframe with all input and output data.
-           Example: columns = x1 x2 x3 x4 y_true y_mean y_var
+    Args:
+        data: Pandas DataFrame with columns for inputs and outputs. Must contain {y_name}_true, {y_name}_mean, and
+              {y_name}_var.
+        y_name: Base name of the output variable.
+        plot_labels: Optional dict to rename variables in plot titles.
+        subplots: If True, returns combined subplots for some figures.
 
-    y_name - Name of output variable. The dataframe 'data' must contain columns
-             named y_name+'_true', y_name+'_mean' and y_name+'_var'.
-             All other columns are assumed to be input variables
+    Returns:
+        A list of Plotly figures for GP diagnostics, or subplots if requested.
 
-    plot_labels - (optional) Dictionary for renaming variables in plots
-                  Example: {'x1': 'variable 1', 'y': 'output'}
-
-    subplots - (optional) The figures will be put in subplots for a more compact view
+    Raises:
+        ValueError: If required columns for y_name are missing in data.
     """
     if plot_labels is None:
         plot_labels = {}
 
-    # Name of inputs and outputs
-    outputnames = [y_name + sub for sub in ["_true", "_mean", "_var"]]
-    inputnames = [name for name in data.columns if name not in outputnames]
+    outputnames = [f"{y_name}_true", f"{y_name}_mean", f"{y_name}_var"]
+    inputnames = [col for col in data.columns if col not in outputnames]
 
-    # Check that output is specified correctly
-    if not all(name in data.columns for name in outputnames):
-        missing_cols = [col for col in outputnames if col not in data.columns]
+    missing_cols = [col for col in outputnames if col not in data.columns]
+    if missing_cols:
         msg = f"DataFrame is missing required columns for '{y_name}'.\nMissing columns: {missing_cols}"
         raise ValueError(msg)
 
-    # Extract data from dataframe
-    y_pred_mean = data[y_name + "_mean"]
-    y_pred_var = data[y_name + "_var"]
-    y_test = data[y_name + "_true"]
-    y_pred_std = np.power(y_pred_var, 0.5)
-    residuals_y = (y_pred_mean - y_test) / y_pred_std  # Standardized residuals
+    y_pred_mean = data[f"{y_name}_mean"].to_numpy(dtype=np.float64)
+    y_pred_var = data[f"{y_name}_var"].to_numpy(dtype=np.float64)
+    y_test = data[f"{y_name}_true"].to_numpy(dtype=np.float64)
+    y_pred_std = np.sqrt(y_pred_var)
+    residuals_y = (y_pred_mean - y_test) / y_pred_std
 
-    # Create complete dict for all plot axis labels
-    dict_varnames = plot_labels
+    dict_varnames = dict(plot_labels)
     for name in data.columns:
         if name not in dict_varnames:
             dict_varnames[name] = name
-
     if y_name not in dict_varnames:
         dict_varnames[y_name] = y_name
 
     # QQ plot
-    title = "Normal QQ plot of standardised errors with 95% confidence band"
-    fig_qq = qq_residuals(y_pred_mean, y_pred_var, y_test, title, showlegend=False)
+    fig_qq = qq_residuals(y_pred_mean, y_pred_var, y_test, title="Normal QQ of errors", showlegend=False)
 
     # Prediction vs test
-    title = "Prediction vs test with 95% intervals"
-    fig_pred_vs_err = pred_vs_error(y_pred_mean, y_pred_var, y_test, title=title, showlegend=False)
+    fig_pred_vs_err = pred_vs_error(y_pred_mean, y_pred_var, y_test, title="Prediction vs test", showlegend=False)
 
-    # Scatter plots of standardised errors
-    x = data[y_name + "_mean"]
-    x_label = "GP mean E[" + dict_varnames[y_name] + "]"
-    title = "Standardised errors as a function of GP mean"
-    y_label = "Standardised errors"
-    figs_errorscatter = [error_scatter(x, residuals_y, title, x_label, y_label, showlegend=False)]
-
-    x = data[y_name + "_var"]
-    x_label = "GP variance Var[" + dict_varnames[y_name] + "]"
-    title = "Standardised errors as a function of GP variance"
-    y_label = "Standardised errors"
-    figs_errorscatter.append(error_scatter(x, residuals_y, title, x_label, y_label, showlegend=False))
-
-    for name in inputnames:
-        x = data[name]
-        x_label = dict_varnames[name]
-        title = "Standardised errors as a function of " + x_label
-        y_label = "Standardised errors"
-        figs_errorscatter.append(error_scatter(x, residuals_y, title, x_label, y_label, showlegend=False))
-
-    if not subplots:
-        # Return list of all plots
-        return [fig_qq, fig_pred_vs_err, *figs_errorscatter]
-
-    # 1. Figure with QQ and pred vs error
-    fig1 = plotly.subplots.make_subplots(
-        rows=1, cols=2, subplot_titles=("Prediction vs test", "Standardised errors QQ"), print_grid=False
+    # Standardised error scatter
+    figs_errorscatter = []
+    x_vals = y_pred_mean
+    x_label = f"GP mean E[{dict_varnames[y_name]}]"
+    figs_errorscatter.append(
+        error_scatter(
+            x_vals,
+            residuals_y,
+            title="Standardised errors vs mean",
+            x_label=x_label,
+            y_label="Standardised errors",
+            showlegend=False,
+        )
     )
 
-    for trace in fig_qq["data"]:
-        fig1.append_trace(trace, 1, 2)
+    x_vals = y_pred_var
+    x_label = f"GP variance Var[{dict_varnames[y_name]}]"
+    figs_errorscatter.append(
+        error_scatter(
+            x_vals,
+            residuals_y,
+            title="Standardised errors vs variance",
+            x_label=x_label,
+            y_label="Standardised errors",
+            showlegend=False,
+        )
+    )
 
-    for trace in fig_pred_vs_err["data"]:
-        fig1.append_trace(trace, 1, 1)
+    for name in inputnames:
+        x_vals = data[name].to_numpy(dtype=np.float64)
+        x_label = dict_varnames[name]
+        figs_errorscatter.append(
+            error_scatter(
+                x_vals,
+                residuals_y,
+                title=f"Standardised errors vs {x_label}",
+                x_label=x_label,
+                y_label="Standardised errors",
+                showlegend=False,
+            )
+        )
 
-    fig1["layout"]["xaxis2"].update(fig_qq["layout"]["xaxis"])
-    fig1["layout"]["yaxis2"].update(fig_qq["layout"]["yaxis"])
+    if not subplots:
+        return [fig_qq, fig_pred_vs_err, *figs_errorscatter]
 
-    fig1["layout"]["xaxis1"].update(fig_pred_vs_err["layout"]["xaxis"])
-    fig1["layout"]["yaxis1"].update(fig_pred_vs_err["layout"]["yaxis"])
+    fig1 = make_subplots(rows=1, cols=2, subplot_titles=("Prediction vs test", "Standardised errors QQ"))
+    for trace in fig_pred_vs_err.data:
+        fig1.add_trace(trace, row=1, col=1)
+    for trace in fig_qq.data:
+        fig1.add_trace(trace, row=1, col=2)
 
-    fig1["layout"].update(showlegend=False)
+    fig1.update_xaxes(fig_pred_vs_err.layout.xaxis, row=1, col=1)
+    fig1.update_yaxes(fig_pred_vs_err.layout.yaxis, row=1, col=1)
+    fig1.update_xaxes(fig_qq.layout.xaxis, row=1, col=2)
+    fig1.update_yaxes(fig_qq.layout.yaxis, row=1, col=2)
+    fig1.update_layout(showlegend=False)
 
-    # 2. Pivoted chol....
-
-    # 3. Standardised error scatter plots
     numcols = 3
     numplots = len(figs_errorscatter)
-    numrows = int(np.ceil(numplots / numcols))
+    numrows = (numplots + numcols - 1) // numcols
 
-    fig3 = plotly.subplots.make_subplots(rows=numrows, cols=numcols, print_grid=False)
-
-    index = -1
-    for i in range(numcols):
-        for j in range(numrows):
-            index += 1
-            if index < numplots:
-                for trace in figs_errorscatter[index]["data"]:
-                    fig3.append_trace(trace, j + 1, i + 1)
-
-                fig3["layout"]["xaxis" + str(index + 1)].update(
-                    title=figs_errorscatter[index]["layout"]["xaxis"]["title"]
+    fig3 = make_subplots(rows=numrows, cols=numcols)
+    idx = 0
+    for i in range(numrows):
+        for j in range(numcols):
+            if idx < numplots:
+                for trc in figs_errorscatter[idx].data:
+                    fig3.add_trace(trc, row=i + 1, col=j + 1)
+                fig3.update_xaxes(
+                    title=figs_errorscatter[idx].layout.xaxis.title,
+                    row=i + 1,
+                    col=j + 1,
                 )
+            idx += 1
 
-    fig3["layout"].update(showlegend=False, title="Standardised errors")
-    fig3["layout"].update(height=330 * numrows, width=950)
+    fig3.update_layout(showlegend=False, title="Standardised errors", height=330 * numrows, width=950)
 
     return [fig1, fig3]

@@ -1,23 +1,49 @@
+"""Utilities for checking array properties such as 'numeric', 'square', and 'lower triangular'."""
+
+from __future__ import annotations
+
 __all__ = ["is_lower_triang", "is_numeric_np_array", "is_square"]
 
 import numpy as np
+import numpy.typing as npt
 
 
-def is_numeric_np_array(arr):
-    """Check that arr is a numpy array with only numeric elements."""
+def is_numeric_np_array(arr: object) -> bool:
+    """Check if arr is a numpy array with numeric dtype.
+
+    Args:
+        arr: Object to verify.
+
+    Returns:
+        True if arr is a numpy array with numeric type, else False.
+    """
     if not isinstance(arr, np.ndarray):
         return False
-    return arr.dtype.kind in set("buifc")  # Boolean, unsigned integer, signed integer, float, complex.
+    return arr.dtype.kind in {"b", "u", "i", "f", "c"}
 
 
-def is_square(arr):
-    """Check that the numpy array arr is 2d square."""
+def is_square(arr: npt.NDArray[np.float64]) -> bool:
+    """Check if arr is a 2D square numpy array.
+
+    Args:
+        arr: A numpy array to check.
+
+    Returns:
+        True if arr is 2D and arr.shape[0] == arr.shape[1], else False.
+    """
     if arr.ndim != 2:  # noqa: PLR2004
         return False
     return arr.shape[0] == arr.shape[1]
 
 
-def is_lower_triang(arr):
-    """Check that a square 2d numpy array is lower triangular."""
+def is_lower_triang(arr: npt.NDArray[np.float64]) -> bool:
+    """Check if arr is lower triangular.
+
+    Args:
+        arr: A 2D square numpy array.
+
+    Returns:
+        True if arr is lower triangular, else False.
+    """
     idx = np.triu_indices_from(arr, k=1)
-    return all(arr[idx] == np.zeros(arr[idx].shape[0]))
+    return np.all(arr[idx] == 0)

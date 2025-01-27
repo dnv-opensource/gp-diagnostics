@@ -1,14 +1,16 @@
+"""
+Unit tests for stats.py, verifying normal QQ computations and split_test_train_fold functionality.
+"""
+
 import numpy as np
 
 from gp_diagnostics.utils.stats import snorm_qq, split_test_train_fold
 
 
-def test_snorm_qq_equalR():
+def test_snorm_qq_equalR() -> None:
     """
-    Check that the function returns the same as in R
+    Checks that snorm_qq() matches known output from R's extRemes.qqnorm for a standard normal sample.
     """
-
-    # Inputs (generated from a standard normal variable)
     x = np.array(
         [
             -0.325459352843027,
@@ -34,10 +36,8 @@ def test_snorm_qq_equalR():
         ]
     )
 
-    # Output
     q_sample, q_snorm, q_snorm_upper, q_snorm_lower = snorm_qq(x)
 
-    # Output computed from extRemes.qqnorm in R
     R_lower = np.array(
         [
             np.nan,
@@ -62,7 +62,6 @@ def test_snorm_qq_equalR():
             0.781065359836158,
         ]
     )
-
     R_upper = np.array(
         [
             -0.781065359836158,
@@ -87,7 +86,6 @@ def test_snorm_qq_equalR():
             np.nan,
         ]
     )
-
     R_snorm = np.array(
         [
             -1.95996398454005,
@@ -112,7 +110,6 @@ def test_snorm_qq_equalR():
             1.95996398454005,
         ]
     )
-
     R_data = np.array(
         [
             -1.32372331616317,
@@ -138,19 +135,17 @@ def test_snorm_qq_equalR():
         ]
     )
 
-    # Check that they are equal
     assert np.allclose(q_snorm_lower, R_lower, equal_nan=True)
     assert np.allclose(q_snorm_upper, R_upper, equal_nan=True)
     assert np.allclose(q_snorm, R_snorm)
     assert np.allclose(q_sample, R_data)
 
 
-def test_split_test_train_fold():
+def test_split_test_train_fold() -> None:
     """
-    Check that split_test_train_fold() gives the expected results
+    Checks correctness of splitting for test vs. train folds.
     """
     folds = [[1, 4, 5], [0], [7], [2, 3, 6], [9, 8]]
-
     x = np.arange(10) * 1.1
 
     y1 = np.array([1.1, 4.4, 5.5, 0.0, 7.7, 2.2, 3.3, 6.6])
@@ -165,6 +160,6 @@ def test_split_test_train_fold():
     assert np.allclose(y1, x_train)
     assert np.allclose(y2, x_test)
 
-    x_test, x_train = split_test_train_fold(folds, x.reshape(-1, 1), 1)
-    assert np.allclose(y1.reshape(-1, 1), x_train)
-    assert np.allclose(y2.reshape(-1, 1), x_test)
+    x_test_2d, x_train_2d = split_test_train_fold(folds, x.reshape(-1, 1), 1)
+    assert np.allclose(y1.reshape(-1, 1), x_train_2d)
+    assert np.allclose(y2.reshape(-1, 1), x_test_2d)

@@ -1,3 +1,11 @@
+"""Implements leave-one-out (LOO) and multifold cross-validation for Gaussian Process models.
+
+Includes optional fixed observational noise and uses Cholesky-based formulas for fast
+calculation of residuals, following Ginsbourger and Schaerer (2021).
+"""
+
+from __future__ import annotations
+
 __all__ = [
     "check_folds_indices",
     "check_lower_triangular",
@@ -11,289 +19,272 @@ __all__ = [
 import itertools
 
 import numpy as np
+import numpy.typing as npt
 
 from gp_diagnostics.utils import checks
-from gp_diagnostics.utils.linalg import chol_inv, mulinv_solve, triang_solve, try_chol
+from gp_diagnostics.utils.linalg import (
+    chol_inv,
+    mulinv_solve,
+    triang_solve,
+    try_chol,
+)
 
 
-def multifold(K, Y_train, folds, noise_variance=0, check_args=True):
-    """Compute multifold CV residuals for GP regression with noiseless (noise_variance = 0) or fixed variance iid
-    Gaussian noise.
-    (residual = observed - predicted).
+def multifold(
+    K: npt.NDArray[np.float64],
+    Y_train: npt.NDArray[np.float64],
+    folds: list[list[int]],
+    *,
+    noise_variance: float = 0,
+    check_args: bool = True,
+) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64], npt.NDArray[np.float64]] | tuple[None, None, None]:
+    """Compute multifold CV residuals for GP regression with optional noise variance.
 
     Args:
-        K (2d array): GP prior covariance matrix
-        Y_train (array): training observations
-        folds (list of lists): The index subsets
-        noise_variance: variance of the observational noise. Set noise_variance = 0 for noiseless observations
-
-        check_args (bool): Check (assert) that arguments are well-specified before computation
+        K: GP prior covariance matrix, shape (n_samples, n_samples).
+        Y_train: Training observations, shape (n_samples,).
+        folds: List of list-index partitions. Each sublist is one fold's indices.
+        noise_variance: Observational noise variance (0 = noiseless).
+        check_args: If True, validates inputs (may raise assertions).
 
     Returns:
-        mean: Mean of CV residuals
-        cov: Covariance of CV residuals
-        residuals_transformed: The residuals transformed to the standard normal space
+        (mean, cov, residuals_transformed), or (None, None, None) if Cholesky fails.
+         - mean: Mean of multifold CV residuals, shape (n_samples,).
+         - cov: Covariance matrix of multifold CV residuals, shape (n_samples, n_samples).
+         - residuals_transformed: Residuals mapped into standard normal space, shape (n_samples,).
 
-    This function just calls 'multifold_cholesky()' with the appropriate Cholesky factor. It is based on the formulation
-    derived in:
-
-    [D. Ginsbourger and C. Schaerer (2021). Fast calculation of Gaussian Process multiple-fold
-    crossvalidation residuals and their covariances. arXiv:2101.03108]
+    Reference:
+        D. Ginsbourger and C. Schaerer (2021). Fast calculation of Gaussian Process multiple-fold
+        crossvalidation residuals and their covariances. arXiv:2101.03108
     """
-    # Check arguments
     if check_args:
-        check_numeric_array(Y_train, 1, "Y_train")  # Check that Y_train is a 1d numeric array
-        check_numeric_array(K, 2, "K")  # Check that K is a 2d array
+        check_numeric_array(Y_train, 1, "Y_train")
+        check_numeric_array(K, 2, "K")
         assert K.shape[0] == Y_train.shape[0] and K.shape[1] == Y_train.shape[0], (
             f"The size of K {K.shape} is not compatible with Y_train {Y_train.shape}"
-        )  # Check that K has correct size
-        assert noise_variance >= 0, (
-            "noise_variance must be non-negative"
-        )  # Check that the noise variance is non-negative
-        check_folds_indices(folds, Y_train.shape[0])  # Check that the list of index subsets (list of lists) is valid
+        )
+        assert noise_variance >= 0, "noise_variance must be non-negative"
+        check_folds_indices(folds, Y_train.shape[0])
 
-    # Try to compute the lower triangular cholesky factor
     L = try_chol(K, noise_variance, "multifold")
     if L is None:
         return None, None, None
 
-    # Compute residuals
-    return multifold_cholesky(L, Y_train, folds, False)
+    return multifold_cholesky(L, Y_train, folds, check_args=False)
 
 
-def multifold_cholesky(L, Y_train, folds, check_args=True):
-    """Compute multifold CV residuals from the Cholesky factor L of the observation precision matrix and the training
-    data Y_train
-    (residual = observed - predicted).
+def multifold_cholesky(
+    L: npt.NDArray[np.float64],
+    Y_train: npt.NDArray[np.float64],
+    folds: list[list[int]],
+    *,
+    check_args: bool = True,
+) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64], npt.NDArray[np.float64]]:
+    """Compute multifold CV residuals given the Cholesky factor of the covariance matrix.
 
     Args:
-        L (2d array): lower triangular Cholesky factor of covariance matrix (L L.T = covariance matrix)
-        Y_train (array): training observations
-        folds (list of lists): The index subsets
-
-        check_args (bool): Check (assert) that arguments are well-specified before computation
+        L: Lower-triangular Cholesky factor, shape (n_samples, n_samples).
+        Y_train: Training observations, shape (n_samples,).
+        folds: List of index partitions. Each sublist is one fold's indices.
+        check_args: Whether to validate inputs.
 
     Returns:
-        mean: Mean of CV residuals
-        cov: Covariance of CV residuals
-        residuals_transformed: The residuals transformed to the standard normal space
+        (mean, cov, residuals_transformed):
+         - mean: Mean of multifold CV residuals.
+         - cov: Covariance of multifold CV residuals.
+         - residuals_transformed: Residuals mapped into standard normal space.
 
-    Note:
-    * The matrix K = L L.T is the covariance matrix of the predicted observations Y_train
-    * For observations including Gaussian noise with fixed variance (v), the matrix K is
-    K = (K + v*I) where K[i, j] is the prior covariance of the latent GP between the i-th an j-th training location
-
-    This implementation uses the Cholesky factor instead of the inverse precision matrix, but is otherwise equivalent to
-    the formulas derived in
-
-    [D. Ginsbourger and C. Schaerer (2021). Fast calculation of Gaussian Process multiple-fold
-    crossvalidation residuals and their covariances. arXiv:2101.03108]
+    Reference:
+        D. Ginsbourger and C. Schaerer (2021). Fast calculation of Gaussian Process multiple-fold
+        crossvalidation residuals and their covariances. arXiv:2101.03108
     """
-    N_folds = len(folds)  # Number of folds
-    N_training = Y_train.shape[0]  # Total number of training observations
+    N_folds = len(folds)
+    N_training = Y_train.shape[0]
 
-    # Check that arguments are ok
     if check_args:
-        check_lower_triangular(L, "L")  # Check that L is a lower triangular matrix
-        check_numeric_array(Y_train, 1, "Y_train")  # Check that Y_train is a 1d numeric array
-        check_folds_indices(folds, N_training)  # Check that the list of index subsets (list of lists) is valid
+        check_lower_triangular(L, "L")
+        check_numeric_array(Y_train, 1, "Y_train")
+        check_folds_indices(folds, N_training)
 
-    # Allocate
-    D = np.zeros(shape=(N_training, N_training))
-    D_inv_mean = np.zeros(N_training)
-    mean = np.zeros(N_training)
+    D = np.zeros((N_training, N_training), dtype=np.float64)
+    D_inv_mean = np.zeros(N_training, dtype=np.float64)
+    mean = np.zeros(N_training, dtype=np.float64)
 
-    # We need some elements from the inverse covariance matrix
     K_inv = chol_inv(L)
     K_inv_Y = mulinv_solve(L, Y_train)
 
-    # Loop over each fold
     for i in range(N_folds):
         idx = np.ix_(folds[i], folds[i])
-
-        block_chol = np.linalg.cholesky(K_inv[idx])  # The cholesky factor of the i-th block
-        D[idx] = chol_inv(block_chol)  # The inverse of the i-th block
-
-        # The residual mean
+        block_chol = np.linalg.cholesky(K_inv[idx])
+        D[idx] = chol_inv(block_chol)
         mean[folds[i]] = mulinv_solve(block_chol, K_inv_Y[folds[i]])
         D_inv_mean[folds[i]] = K_inv[idx].dot(mean[folds[i]])
 
-    # The covariance matrix
     alpha = triang_solve(L, D)
     cov = alpha.T.dot(alpha)
-
-    # The transformed residuals
     residuals_transformed = L.T.dot(D_inv_mean)
-
     return mean, cov, residuals_transformed
 
 
-def loo(K, Y_train, noise_variance=0, check_args=True):
-    """Compute Leave-One-Out (LOO) residuals for GP regression with noiseless (noise_variance = 0) or fixed variance iid
-    Gaussian noise.
-    (residual = observed - predicted)
-    This function just calls 'loo_cholesky()' with the appropriate Cholesky factor.
+def loo(
+    K: npt.NDArray[np.float64],
+    Y_train: npt.NDArray[np.float64],
+    *,
+    noise_variance: float = 0,
+    check_args: bool = True,
+) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64], npt.NDArray[np.float64]] | tuple[None, None, None]:
+    """Compute Leave-One-Out (LOO) CV residuals for GP regression with optional noise variance.
 
     Args:
-        K (2d array): GP prior covariance matrix
-        Y_train (array): training observations
-        noise_variance: variance of the observational noise. Set noise_variance = 0 for noiseless observations
-
-        check_args (bool): Check (assert) that arguments are well-specified before computation
+        K: GP prior covariance matrix, shape (n_samples, n_samples).
+        Y_train: Training observations, shape (n_samples,).
+        noise_variance: Observational noise variance (0 = noiseless).
+        check_args: If True, validates inputs (may raise assertions).
 
     Returns:
-        mean: Mean of LOO residuals
-        cov: Covariance of LOO residuals
-        residuals_transformed: The residuals transformed to the standard normal space
+        (mean, cov, residuals_transformed) or (None, None, None) if Cholesky fails:
+         - mean: Mean of LOO residuals.
+         - cov: Covariance matrix of LOO residuals.
+         - residuals_transformed: LOO residuals mapped into standard normal space.
     """
     if check_args:
-        check_numeric_array(Y_train, 1, "Y_train")  # Check that Y_train is a 1d numeric array
-        check_numeric_array(K, 2, "K")  # Check that K is a 2d array
+        check_numeric_array(Y_train, 1, "Y_train")
+        check_numeric_array(K, 2, "K")
         assert K.shape[0] == Y_train.shape[0] and K.shape[1] == Y_train.shape[0], (
             f"The size of K {K.shape} is not compatible with Y_train {Y_train.shape}"
-        )  # Check that K has correct size
-        assert noise_variance >= 0, (
-            "noise_variance must be non-negative"
-        )  # Check that the noise variance is non-negative
+        )
+        assert noise_variance >= 0, "noise_variance must be non-negative"
 
-    # Try to compute the lower triangular cholesky factor
     L = try_chol(K, noise_variance, "loo")
     if L is None:
         return None, None, None
 
-    # Compute residuals
-    return loo_cholesky(L, Y_train, False)
+    return loo_cholesky(L, Y_train, check_args=False)
 
 
-def loo_cholesky(L, Y_train, check_args=True):
-    """Compute Leave-One-Out (LOO) residuals from the Cholesky factor L of the observation precision matrix and the
-    training data Y_train
-    (residual = observed - predicted).
+def loo_cholesky(
+    L: npt.NDArray[np.float64],
+    Y_train: npt.NDArray[np.float64],
+    *,
+    check_args: bool = True,
+) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64], npt.NDArray[np.float64]]:
+    """Compute LOO residuals given the Cholesky factor of the covariance matrix.
 
     Args:
-        L (2d array): lower triangular Cholesky factor of covariance matrix (L L.T = covariance matrix)
-        Y_train (array): training observations
-
-        check_args (bool): Check (assert) that arguments are well-specified before computation
+        L: Lower-triangular Cholesky factor (n_samples x n_samples).
+        Y_train: Training observations, shape (n_samples,).
+        check_args: If True, validates arguments.
 
     Returns:
-        mean: Mean of LOO residuals
-        cov: Covariance of LOO residuals
-        residuals_transformed: The residuals transformed to the standard normal space
+        (mean, cov, residuals_transformed):
+         - mean: Mean of LOO residuals.
+         - cov: Covariance of LOO residuals.
+         - residuals_transformed: LOO residuals mapped to standard normal space.
 
-    Note:
-    * The matrix K = L L.T is the covariance matrix of the predicted observations Y_train
-    * For observations including Gaussian noise with fixed variance (v), the matrix K is
-    K = (K + v*I) where K[i, j] is the prior covariance of the latent GP between the i-th an j-th training location
-
-    This implementation uses the Cholesky factor instead of the inverse precision matrix, but is otherwise equivalent to
-    the formulas derived in
-
-    [O. Dubrule. Cross validation of kriging in a unique neighborhood.
-    Journal of the International Association for Mathematical Geology, 15 (6):687-699, 1983.]
+    References:
+        O. Dubrule. Cross validation of kriging in a unique neighborhood.
+        Journal of the International Association for Mathematical Geology, 15 (6):687-699, 1983.
     """
-    # Check that arguments are ok
     if check_args:
-        check_lower_triangular(L, "L")  # Check that L is a lower triangular matrix
-        check_numeric_array(Y_train, 1, "Y_train")  # Check that Y_train is a 1d numeric array
+        check_lower_triangular(L, "L")
+        check_numeric_array(Y_train, 1, "Y_train")
 
     K_inv = chol_inv(L)
 
-    var = 1 / K_inv.diagonal()
+    var = 1.0 / K_inv.diagonal()
     mean = mulinv_solve(L, Y_train) * var
 
-    # Can be made a bit faster with einsum (as D is diagonal)
-    D = np.eye(var.shape[0]) * var
+    D = np.eye(var.shape[0], dtype=np.float64) * var
     alpha = triang_solve(L, D)
     cov = alpha.T.dot(alpha)
 
-    residuals_transformed = L.T.dot(np.eye(var.shape[0]) * (1 / var)).dot(mean)
+    factor = np.eye(var.shape[0], dtype=np.float64) * (1.0 / var)
+    residuals_transformed = L.T.dot(factor).dot(mean)
 
     return mean, cov, residuals_transformed
 
 
-def check_folds_indices(folds, n_max) -> None:
-    """Check that the list of index subsets (list of lists) is valid.
+def check_folds_indices(folds: list[list[int]], n_max: int) -> None:
+    """Check that folds is a valid partition of indices [0..n_max-1].
 
     Args:
-        folds (list of lists): The index subsets.
-        n_max (int): Total number of indices.
+        folds: List of sublists of integer indices.
+        n_max: Total number of samples to index.
 
     Raises:
-        AssertionError: if not 'folds' represents the range [0:n_max-1] of n_max indices split into
-                        non overlapping subsets
+        AssertionError: If folds do not form a valid partition of range(n_max).
     """
-    assert isinstance(folds, list), "'folds' has to be a list of lists of integers"
-    assert all(isinstance(x, list) for x in folds), "'folds' has to be a list of lists of integers"
-    assert [] not in folds, "'folds' has to be a list of lists of integers"
+    assert isinstance(folds, list), "'folds' must be a list of lists of integers"
+    assert all(isinstance(x, list) for x in folds), "'folds' must be a list of lists of integers"
+    assert [] not in folds, "'folds' must not contain empty subsets"
 
     all_elements_set = set(itertools.chain(*folds))
     assert all(np.issubdtype(type(x), np.integer) for x in all_elements_set), (
-        "'folds' has to be a list of lists of integers"
+        "'folds' must contain only integer indices"
     )
-    assert all_elements_set == set(range(n_max)), "the indices in 'folds' has to be a partition of range(n_max)"
+    assert all_elements_set == set(range(n_max)), "The indices in 'folds' must form a partition of range(n_max)"
 
 
-def check_lower_triangular(arr, argname="arr") -> None:
-    """Check that the argument is a 2d numpy array which is lower triangular.
+def check_lower_triangular(arr: npt.NDArray[np.float64], argname: str = "arr") -> None:
+    """Check that arr is a lower-triangular 2D numeric numpy array.
 
     Args:
-        arr (): object
+        arr: Array to check.
+        argname: Name of the argument for error messages.
 
     Raises:
-        AssertionError: if not 'arr' represents a lower triangular matrix
+        AssertionError: If arr is not a valid lower-triangular numeric array.
     """
     assert checks.is_numeric_np_array(arr), f"{argname} must be a numpy array with numeric elements"
-    assert checks.is_square(arr), f"{argname} must be a square numpy array"
+    assert checks.is_square(arr), f"{argname} must be square"
     assert checks.is_lower_triang(arr), f"{argname} must be lower triangular"
 
 
-def check_numeric_array(arr, dim, argname="arr") -> None:
-    """Check that the argument is a numpy array of correct dimension.
+def check_numeric_array(arr: npt.NDArray[np.float64], dim: int, argname: str = "arr") -> None:
+    """Check that arr is a numeric numpy array of specified dimension.
 
     Args:
-        arr (): object
+        arr: Array to check.
+        dim: Required dimensionality (1 for vector, 2 for matrix, etc.).
+        argname: Argument name for error messages.
 
     Raises:
-        AssertionError: if not 'arr' represents a 'dim'-dimensional numpy array
+        AssertionError: If arr is not a numeric array of the requested dimension.
     """
-    assert checks.is_numeric_np_array(arr), f"{argname} must be a numpy array with numeric elements"
-    assert len(arr.shape) == dim, f"{argname} must be a {dim} dimensional array"
+    assert checks.is_numeric_np_array(arr), f"{argname} must be a numeric numpy array"
+    assert len(arr.shape) == dim, f"{argname} must be {dim}-dimensional"
 
 
-def _multifold_inv(K, Y_train, folds):
-    """Compute multifold cv residuals using matrix inverse (for testing)
-    (residual = observed - predicted).
+def _multifold_inv(
+    K: npt.NDArray[np.float64],
+    Y_train: npt.NDArray[np.float64],
+    folds: list[list[int]],
+) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64], npt.NDArray[np.float64]]:
+    """Reference implementation using matrix inverse for testing multifold CV.
 
     Args:
-        K (2d array): covariance matrix
-        Y_train (array): training observations
-        folds (list of lists): The index subsets.
+        K: Covariance matrix, shape (n_samples, n_samples).
+        Y_train: Observations, shape (n_samples,).
+        folds: List of fold indices.
 
     Returns:
-        mean: Mean of CV residuals
-        cov: Covariance of CV residuals
-        residuals_transformed: The residuals transformed to the standard normal space
-
-    [D. Ginsbourger and C. Schaerer (2021). Fast calculation of Gaussian Process multiple-fold
-    crossvalidation residuals and their covariances. arXiv:2101.03108]
+        (mean, cov, residuals_transformed) for multifold CV, used for testing only.
     """
     K_inv = np.linalg.inv(K)
     L = np.linalg.cholesky(K)
 
-    N_training = Y_train.shape[0]  # Total number of training observations
-    N_folds = len(folds)  # Number of folds
+    N_training = Y_train.shape[0]
+    N_folds = len(folds)
 
     K_inv_Y = K_inv.dot(Y_train)
 
-    D = np.zeros(shape=(N_training, N_training))
-    D_inv = np.zeros(shape=(N_training, N_training))
-    mean = np.zeros(N_training)
-    D_inv_mean = np.zeros(N_training)
+    D = np.zeros((N_training, N_training), dtype=np.float64)
+    D_inv = np.zeros((N_training, N_training), dtype=np.float64)
+    mean = np.zeros(N_training, dtype=np.float64)
+    D_inv_mean = np.zeros(N_training, dtype=np.float64)
 
     for i in range(N_folds):
         idx = np.ix_(folds[i], folds[i])
-
         block_inv = np.linalg.inv(K_inv[idx])
         D[idx] = block_inv
         D_inv[idx] = K_inv[idx]
@@ -302,7 +293,5 @@ def _multifold_inv(K, Y_train, folds):
         D_inv_mean[folds[i]] = D_inv[idx].dot(mean[folds[i]])
 
     cov = np.linalg.multi_dot([D, K_inv, D])
-
-    residuals_transformed = L.T.dot(D_inv_mean)  # D_inv_mean = D_inv.dot(mean)
-
+    residuals_transformed = L.T.dot(D_inv_mean)
     return mean, cov, residuals_transformed
