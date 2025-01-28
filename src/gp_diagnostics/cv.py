@@ -17,9 +17,12 @@ __all__ = [
 ]
 
 import itertools
+from typing import TYPE_CHECKING
 
 import numpy as np
-import numpy.typing as npt
+
+if TYPE_CHECKING:
+    from numpy.typing import NDArray
 
 from gp_diagnostics.utils import checks
 from gp_diagnostics.utils.linalg import (
@@ -31,13 +34,13 @@ from gp_diagnostics.utils.linalg import (
 
 
 def multifold(
-    K: npt.NDArray[np.float64],
-    Y_train: npt.NDArray[np.float64],
+    K: NDArray[np.float64],
+    Y_train: NDArray[np.float64],
     folds: list[list[int]],
     *,
     noise_variance: float = 0,
     check_args: bool = True,
-) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64], npt.NDArray[np.float64]] | tuple[None, None, None]:
+) -> tuple[NDArray[np.float64], NDArray[np.float64], NDArray[np.float64]] | tuple[None, None, None]:
     """Compute multifold CV residuals for GP regression with optional noise variance.
 
     Args:
@@ -74,12 +77,12 @@ def multifold(
 
 
 def multifold_cholesky(
-    L: npt.NDArray[np.float64],
-    Y_train: npt.NDArray[np.float64],
+    L: NDArray[np.float64],
+    Y_train: NDArray[np.float64],
     folds: list[list[int]],
     *,
     check_args: bool = True,
-) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64], npt.NDArray[np.float64]]:
+) -> tuple[NDArray[np.float64], NDArray[np.float64], NDArray[np.float64]]:
     """Compute multifold CV residuals given the Cholesky factor of the covariance matrix.
 
     Args:
@@ -127,12 +130,12 @@ def multifold_cholesky(
 
 
 def loo(
-    K: npt.NDArray[np.float64],
-    Y_train: npt.NDArray[np.float64],
+    K: NDArray[np.float64],
+    Y_train: NDArray[np.float64],
     *,
     noise_variance: float = 0,
     check_args: bool = True,
-) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64], npt.NDArray[np.float64]] | tuple[None, None, None]:
+) -> tuple[NDArray[np.float64], NDArray[np.float64], NDArray[np.float64]] | tuple[None, None, None]:
     """Compute Leave-One-Out (LOO) CV residuals for GP regression with optional noise variance.
 
     Args:
@@ -163,11 +166,11 @@ def loo(
 
 
 def loo_cholesky(
-    L: npt.NDArray[np.float64],
-    Y_train: npt.NDArray[np.float64],
+    L: NDArray[np.float64],
+    Y_train: NDArray[np.float64],
     *,
     check_args: bool = True,
-) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64], npt.NDArray[np.float64]]:
+) -> tuple[NDArray[np.float64], NDArray[np.float64], NDArray[np.float64]]:
     """Compute LOO residuals given the Cholesky factor of the covariance matrix.
 
     Args:
@@ -225,7 +228,7 @@ def check_folds_indices(folds: list[list[int]], n_max: int) -> None:
     assert all_elements_set == set(range(n_max)), "The indices in 'folds' must form a partition of range(n_max)"
 
 
-def check_lower_triangular(arr: npt.NDArray[np.float64], argname: str = "arr") -> None:
+def check_lower_triangular(arr: NDArray[np.float64], argname: str = "arr") -> None:
     """Check that arr is a lower-triangular 2D numeric numpy array.
 
     Args:
@@ -240,7 +243,7 @@ def check_lower_triangular(arr: npt.NDArray[np.float64], argname: str = "arr") -
     assert checks.is_lower_triang(arr), f"{argname} must be lower triangular"
 
 
-def check_numeric_array(arr: npt.NDArray[np.float64], dim: int, argname: str = "arr") -> None:
+def check_numeric_array(arr: NDArray[np.float64], dim: int, argname: str = "arr") -> None:
     """Check that arr is a numeric numpy array of specified dimension.
 
     Args:
@@ -256,10 +259,10 @@ def check_numeric_array(arr: npt.NDArray[np.float64], dim: int, argname: str = "
 
 
 def _multifold_inv(
-    K: npt.NDArray[np.float64],
-    Y_train: npt.NDArray[np.float64],
+    K: NDArray[np.float64],
+    Y_train: NDArray[np.float64],
     folds: list[list[int]],
-) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64], npt.NDArray[np.float64]]:
+) -> tuple[NDArray[np.float64], NDArray[np.float64], NDArray[np.float64]]:
     """Reference implementation using matrix inverse for testing multifold CV.
 
     Args:

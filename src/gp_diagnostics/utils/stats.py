@@ -5,15 +5,18 @@ from __future__ import annotations
 __all__ = ["snorm_qq", "split_test_train_fold"]
 
 import itertools
+from typing import TYPE_CHECKING
 
 import numpy as np
-import numpy.typing as npt
 from scipy.stats import norm
+
+if TYPE_CHECKING:
+    from numpy.typing import NDArray
 
 
 def snorm_qq(
-    x: npt.NDArray[np.float64],
-) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64], npt.NDArray[np.float64], npt.NDArray[np.float64]]:
+    x: NDArray[np.float64],
+) -> tuple[NDArray[np.float64], NDArray[np.float64], NDArray[np.float64], NDArray[np.float64]]:
     """Calculate standard normal QQ plot data, with approximate 95% confidence bands.
 
     Args:
@@ -42,9 +45,9 @@ def snorm_qq(
 
 def split_test_train_fold(
     folds: list[list[int]],
-    X: npt.NDArray[np.float64],
+    X: NDArray[np.float64],
     i: int,
-) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
+) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
     """Split X into test and train arrays based on the i-th fold indices.
 
     Args:

@@ -7,8 +7,12 @@ from __future__ import annotations
 
 __all__ = ["evaluate_GP", "evaluate_GP_cholesky", "log_prob_normal", "log_prob_standard_normal"]
 
+from typing import TYPE_CHECKING
+
 import numpy as np
-import numpy.typing as npt
+
+if TYPE_CHECKING:
+    from numpy.typing import NDArray
 
 from gp_diagnostics.cv import (
     check_folds_indices,
@@ -21,13 +25,13 @@ from gp_diagnostics.utils.linalg import triang_solve, try_chol
 
 
 def evaluate_GP(
-    K: npt.NDArray[np.float64],
-    Y_train: npt.NDArray[np.float64],
+    K: NDArray[np.float64],
+    Y_train: NDArray[np.float64],
     *,
     folds: list[list[int]] | None = None,
     noise_variance: float = 0,
     check_args: bool = True,
-) -> dict[str, npt.NDArray[np.float64] | float]:
+) -> dict[str, NDArray[np.float64] | float]:
     """Computes various GP evaluation metrics for the given covariance matrix and data.
 
     Optionally uses multifold CV if folds are provided, otherwise does LOO.
@@ -66,12 +70,12 @@ def evaluate_GP(
 
 
 def evaluate_GP_cholesky(
-    L: npt.NDArray[np.float64],
-    Y_train: npt.NDArray[np.float64],
+    L: NDArray[np.float64],
+    Y_train: NDArray[np.float64],
     *,
     folds: list[list[int]] | None = None,
     check_args: bool = True,
-) -> dict[str, npt.NDArray[np.float64] | float]:
+) -> dict[str, NDArray[np.float64] | float]:
     """Performs GP evaluation metrics given a Cholesky factor of (K + noise*I).
 
     Args:
@@ -95,7 +99,7 @@ def evaluate_GP_cholesky(
         if folds is not None:
             check_folds_indices(folds, Y_train.shape[0])
 
-    res: dict[str, npt.NDArray[np.float64] | float] = {}
+    res: dict[str, NDArray[np.float64] | float] = {}
     if folds is not None:
         mean, cov, residuals_transformed = multifold_cholesky(L, Y_train, folds, check_args=False)
     else:
@@ -112,7 +116,7 @@ def evaluate_GP_cholesky(
     return res
 
 
-def log_prob_normal(L: npt.NDArray[np.float64], Y: npt.NDArray[np.float64]) -> float:
+def log_prob_normal(L: NDArray[np.float64], Y: NDArray[np.float64]) -> float:
     """Computes log probability of data Y under Gaussian with covariance L*L^T.
 
     Args:
@@ -126,7 +130,7 @@ def log_prob_normal(L: npt.NDArray[np.float64], Y: npt.NDArray[np.float64]) -> f
     return -0.5 * np.linalg.norm(a) ** 2 - np.log(L.diagonal()).sum() - (Y.shape[0] / 2) * np.log(2 * np.pi)
 
 
-def log_prob_standard_normal(Y: npt.NDArray[np.float64]) -> float:
+def log_prob_standard_normal(Y: NDArray[np.float64]) -> float:
     """Computes log probability of data Y under a standard normal distribution.
 
     Args:

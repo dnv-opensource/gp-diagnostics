@@ -17,7 +17,6 @@ __all__ = [
 from typing import TYPE_CHECKING
 
 import numpy as np
-import numpy.typing as npt
 import plotly
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
@@ -25,14 +24,15 @@ from scipy.stats import gaussian_kde, norm
 
 if TYPE_CHECKING:
     import pandas as pd
+    from numpy.typing import NDArray
 
 from gp_diagnostics.utils.stats import snorm_qq
 
 
 def hist_residuals(
-    y_pred_mean: npt.NDArray[np.float64],
-    y_pred_var: npt.NDArray[np.float64],
-    y_test: npt.NDArray[np.float64],
+    y_pred_mean: NDArray[np.float64],
+    y_pred_var: NDArray[np.float64],
+    y_test: NDArray[np.float64],
     *,
     title: str = "",
     showlegend: bool = True,
@@ -96,9 +96,9 @@ def hist_residuals(
 
 
 def qq_residuals(
-    y_pred_mean: npt.NDArray[np.float64],
-    y_pred_var: npt.NDArray[np.float64],
-    y_test: npt.NDArray[np.float64],
+    y_pred_mean: NDArray[np.float64],
+    y_pred_var: NDArray[np.float64],
+    y_test: NDArray[np.float64],
     *,
     title: str = "",
     showlegend: bool = True,
@@ -174,9 +174,9 @@ def qq_residuals(
 
 
 def pred_vs_error(
-    y_pred_mean: npt.NDArray[np.float64],
-    y_pred_var: npt.NDArray[np.float64],
-    y_test: npt.NDArray[np.float64],
+    y_pred_mean: NDArray[np.float64],
+    y_pred_var: NDArray[np.float64],
+    y_test: NDArray[np.float64],
     *,
     title: str = "",
     showlegend: bool = True,
@@ -244,10 +244,10 @@ def pred_vs_error(
 
 
 def pred_vs_error_perc(
-    y_pred_mean: npt.NDArray[np.float64],
-    y_pred_perc_lower: npt.NDArray[np.float64],
-    y_pred_perc_upper: npt.NDArray[np.float64],
-    y_test: npt.NDArray[np.float64],
+    y_pred_mean: NDArray[np.float64],
+    y_pred_perc_lower: NDArray[np.float64],
+    y_pred_perc_upper: NDArray[np.float64],
+    y_test: NDArray[np.float64],
     conf_interval: float,
     *,
     title: str = "",
@@ -315,8 +315,8 @@ def pred_vs_error_perc(
 
 
 def error_scatter(
-    x: npt.NDArray[np.float64],
-    errors: npt.NDArray[np.float64],
+    x: NDArray[np.float64],
+    errors: NDArray[np.float64],
     *,
     title: str = "",
     x_label: str = "x",

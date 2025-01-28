@@ -4,8 +4,12 @@ from __future__ import annotations
 
 __all__ = ["is_lower_triang", "is_numeric_np_array", "is_square"]
 
+from typing import TYPE_CHECKING
+
 import numpy as np
-import numpy.typing as npt
+
+if TYPE_CHECKING:
+    from numpy.typing import NDArray
 
 
 def is_numeric_np_array(arr: object) -> bool:
@@ -22,7 +26,7 @@ def is_numeric_np_array(arr: object) -> bool:
     return arr.dtype.kind in {"b", "u", "i", "f", "c"}
 
 
-def is_square(arr: npt.NDArray[np.float64]) -> bool:
+def is_square(arr: NDArray[np.float64]) -> bool:
     """Check if arr is a 2D square numpy array.
 
     Args:
@@ -36,7 +40,7 @@ def is_square(arr: npt.NDArray[np.float64]) -> bool:
     return arr.shape[0] == arr.shape[1]
 
 
-def is_lower_triang(arr: npt.NDArray[np.float64]) -> bool:
+def is_lower_triang(arr: NDArray[np.float64]) -> bool:
     """Check if arr is lower triangular.
 
     Args:

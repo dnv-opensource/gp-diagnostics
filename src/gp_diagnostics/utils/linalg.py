@@ -13,19 +13,22 @@ __all__ = [
 ]
 
 import warnings
+from typing import TYPE_CHECKING
 
 import numpy as np
-import numpy.typing as npt
 from scipy import linalg
+
+if TYPE_CHECKING:
+    from numpy.typing import NDArray
 
 
 def triang_solve(
-    A: npt.NDArray[np.float64],
-    B: npt.NDArray[np.float64],
+    A: NDArray[np.float64],
+    B: NDArray[np.float64],
     *,
     lower: bool = True,
     trans: bool = False,
-) -> npt.NDArray[np.float64]:
+) -> NDArray[np.float64]:
     """Solve a triangular system A*X = B or A^T*X = B, where A is triangular.
 
     Args:
@@ -53,11 +56,11 @@ def triang_solve(
 
 
 def mulinv_solve(
-    F: npt.NDArray[np.float64],
-    B: npt.NDArray[np.float64],
+    F: NDArray[np.float64],
+    B: NDArray[np.float64],
     *,
     lower: bool = True,
-) -> npt.NDArray[np.float64]:
+) -> NDArray[np.float64]:
     """Solve A*X = B for A = F * F^T. Typically used when F is lower triangular.
 
     Args:
@@ -73,11 +76,11 @@ def mulinv_solve(
 
 
 def mulinv_solve_rev(
-    F: npt.NDArray[np.float64],
-    B: npt.NDArray[np.float64],
+    F: NDArray[np.float64],
+    B: NDArray[np.float64],
     *,
     lower: bool = True,
-) -> npt.NDArray[np.float64]:
+) -> NDArray[np.float64]:
     """Solve X*A = B for A = F*F^T. Typically used when F is lower triangular.
 
     Args:
@@ -91,7 +94,7 @@ def mulinv_solve_rev(
     return mulinv_solve(F, B.T, lower=lower).T
 
 
-def symmetrify(A: npt.NDArray[np.float64], *, upper: bool = False) -> None:
+def symmetrify(A: NDArray[np.float64], *, upper: bool = False) -> None:
     """Make matrix A symmetric by copying one triangle to the other in-place.
 
     Args:
@@ -105,7 +108,7 @@ def symmetrify(A: npt.NDArray[np.float64], *, upper: bool = False) -> None:
         A[triu] = A.T[triu]
 
 
-def chol_inv(L: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
+def chol_inv(L: NDArray[np.float64]) -> NDArray[np.float64]:
     """Return inverse of A = L * L^T, where L is lower triangular (via LAPACK dpotri).
 
     Args:
@@ -119,7 +122,7 @@ def chol_inv(L: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
     return A_inv
 
 
-def traceprod(A: npt.NDArray[np.float64], B: npt.NDArray[np.float64]) -> float:
+def traceprod(A: NDArray[np.float64], B: NDArray[np.float64]) -> float:
     """Compute trace(A @ B) using Einstein summation.
 
     Args:
@@ -133,10 +136,10 @@ def traceprod(A: npt.NDArray[np.float64], B: npt.NDArray[np.float64]) -> float:
 
 
 def try_chol(
-    K: npt.NDArray[np.float64],
+    K: NDArray[np.float64],
     noise_variance: float,
     fun_name: str,
-) -> npt.NDArray[np.float64] | None:
+) -> NDArray[np.float64] | None:
     """Attempt Cholesky of (K + noise_variance*I). If fail, warn and return None.
 
     Args:
