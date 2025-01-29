@@ -1,27 +1,27 @@
+"""Unit tests for cv.py, focusing on correctness of LOO and multifold cross-validation residuals."""
+
+import functools
+import operator
 import random
-from typing import Any, List, Tuple, Union
 
 import gpytorch
 import numpy as np
 import pytest
 import torch
-from nptyping import Float, Int, NDArray, Shape
+from numpy.typing import NDArray
 
-import rapid_models.gp_models.utils as gputils
-from rapid_models.gp_diagnostics.cv import (
-    check_folds_indices,
-    check_lower_triangular,
-    check_numeric_array,
-    loo,
-    multifold,
+from gp_diagnostics.cv import check_folds_indices, check_lower_triangular, check_numeric_array, loo, multifold
+from gp_diagnostics.utils.stats import split_test_train_fold
+from tests.utils import (
+    ExactGPModel,
+    gpytorch_kernel_Matern,
+    gpytorch_likelihood_gaussian,
+    gpytorch_mean_constant,
 )
-from rapid_models.gp_diagnostics.utils.stats import split_test_train_fold
-from rapid_models.gp_models.templates import ExactGPModel
 
 
-def test_check_folds_indices_correct():
-    """
-    Test that check_folds_indices throws assertion when needed
+def test_check_folds_indices_correct() -> None:
+    """Test that check_folds_indices throws assertion when needed.
 
     - No assertion when input is correct
     """
@@ -29,9 +29,8 @@ def test_check_folds_indices_correct():
     check_folds_indices([[1, 3], [5, 6, 7], [0, 2], [4]], 8)
 
 
-def test_check_folds_indices_nmax():
-    """
-    Test that check_folds_indices throws assertion when needed
+def test_check_folds_indices_nmax() -> None:
+    """Test that check_folds_indices throws assertion when needed.
 
     - Wrong n_max
     """
@@ -39,9 +38,8 @@ def test_check_folds_indices_nmax():
         check_folds_indices([[1, 3], [5, 6, 7], [0, 2], [4]], 6)  # Wrong n_max
 
 
-def test_check_folds_indices_list():
-    """
-    Test that check_folds_indices throws assertion when needed
+def test_check_folds_indices_list() -> None:
+    """Test that check_folds_indices throws assertion when needed.
 
     - Not a list of lists
     """
@@ -50,9 +48,8 @@ def test_check_folds_indices_list():
         check_folds_indices([1, 3, 5, 6, 7, 0, 2, 4], 8)  # type: ignore
 
 
-def test_check_folds_indices_int():
-    """
-    Test that check_folds_indices throws assertion when needed
+def test_check_folds_indices_int() -> None:
+    """Test that check_folds_indices throws assertion when needed.
 
     - Not a list of lists of ints
     """
@@ -63,24 +60,18 @@ def test_check_folds_indices_int():
         check_folds_indices([[1, 0.5]], 8)  # type: ignore
 
 
-def test_check_folds_indices_exh():
-    """
-    Test that check_folds_indices throws assertion when needed
+def test_check_folds_indices_exh() -> None:
+    """Test that check_folds_indices throws assertion when needed.
 
     - Not exhaustive indices
     """
     with pytest.raises(Exception):
-        check_folds_indices(
-            [[1, 3], [5, 7], [0, 2], [4]], 8
-        )  # Not exhaustive indices
-        check_folds_indices(
-            [[1, 3], [5, 6, 7, 9], [0, 2], [4]], 8
-        )  # Not exhaustive indices
+        check_folds_indices([[1, 3], [5, 7], [0, 2], [4]], 8)  # Not exhaustive indices
+        check_folds_indices([[1, 3], [5, 6, 7, 9], [0, 2], [4]], 8)  # Not exhaustive indices
 
 
-def test_check_folds_indices_empty():
-    """
-    Test that check_folds_indices throws assertion when needed
+def test_check_folds_indices_empty() -> None:
+    """Test that check_folds_indices throws assertion when needed.
 
     - Empty lists
     """
@@ -88,9 +79,8 @@ def test_check_folds_indices_empty():
         check_folds_indices([[1, 3], [5, 6, 7], [0, 2], [], [4]], 8)
 
 
-def test_check_lower_triangular():
-    """
-    Test that check_lower_triangular throws assertion when needed
+def test_check_lower_triangular() -> None:
+    """Test that check_lower_triangular throws assertion when needed.
 
     including multiple cases in same test as check_lower_triangular already uses
     tested functions
@@ -108,9 +98,7 @@ def test_check_lower_triangular():
 
     # These should raise error
     with pytest.raises(Exception):
-        check_lower_triangular(
-            np.array([[1, 2, 2.3], [0, 2.2, 3], [0.1, 0, 4]])
-        )
+        check_lower_triangular(np.array([[1, 2, 2.3], [0, 2.2, 3], [0.1, 0, 4]]))
 
     with pytest.raises(Exception):
         check_lower_triangular(np.ones(shape=(13, 14)))
@@ -122,9 +110,8 @@ def test_check_lower_triangular():
         check_lower_triangular("a")
 
 
-def test_check_numeric_array():
-    """
-    Test that check_numeric_array throws assertion when needed
+def test_check_numeric_array() -> None:
+    """Test that check_numeric_array throws assertion when needed.
 
     including multiple cases in same test as check_numeric_array already uses
     tested functions
@@ -149,15 +136,13 @@ def test_check_numeric_array():
         check_numeric_array(np.array([1, "1"]), 1)
 
 
-def test_loo_1d():
-    """
-    Test the 1d example from
+def test_loo_1d() -> None:
+    """Test the 1d example from.
 
     [D. Ginsbourger and C. Schaerer (2021). Fast calculation of Gaussian Process
         multiple-fold crossvalidation residuals and their covariances.
         arXiv:2101.03108]
     """
-
     # Covariance matrix and observations
     Y_train = np.array(
         [
@@ -466,9 +451,7 @@ def test_loo_1d():
     # Compare
     assert np.allclose(LOO_mean, LOO_mean_true, atol=1e-3)
     assert np.allclose(LOO_cov, LOO_cov_true)
-    assert np.allclose(
-        LOO_residuals_transformed, LOO_residuals_transformed_true, atol=1e-3
-    )
+    assert np.allclose(LOO_residuals_transformed, LOO_residuals_transformed_true, atol=1e-3)
 
 
 def generate_cv_data(
@@ -478,20 +461,15 @@ def generate_cv_data(
     NUM_FOLDS: int = 8,
     NOISE_VAR: float = 0.0,
     SCRAMBLE: bool = True,
-) -> Tuple[
-    NDArray[Shape["N_TRAIN"], Float],  # noqa: F821 # residual means
-    NDArray[Shape["N_TRAIN"], Float],  # noqa: F821 # residual variances
-    List[List[int]],  # folds indices
-    NDArray[
-        Shape["N_TRAIN, N_TRAIN"], Float  # noqa: F821 # covariance matrix
-    ],
+) -> tuple[
+    NDArray[np.float64],
+    NDArray[np.float64],
+    list[list[int]],  # folds indices
+    NDArray[np.float64],
     torch.Tensor,  # X_train  shape=(N_TRAIN, N_DIM)
     torch.Tensor,  # Y_train  shape=(N_TRAIN)
 ]:
-    """
-    Generate some cross validation data manually for testing
-    """
-
+    """Generate some cross validation data manually for testing."""
     # Set random seed
     random.seed(42)
     torch.manual_seed(42)
@@ -508,18 +486,14 @@ def generate_cv_data(
         X_train = torch.cat(
             [
                 X_train,
-                X_train[
-                    np.random.choice(
-                        np.arange(N_TRAIN - N_DUPLICATE_X), N_DUPLICATE_X
-                    )
-                ],
+                X_train[np.random.choice(np.arange(N_TRAIN - N_DUPLICATE_X), N_DUPLICATE_X)],
             ]
         )
 
     # Define kernel and sample training data
 
     # Kernel
-    ker: gpytorch.kernels.Kernel = gputils.gpytorch_kernel_Matern(
+    ker: gpytorch.kernels.Kernel = gpytorch_kernel_Matern(
         outputscale=KER_SCALE_TRUE,
         lengthscale=KER_LENGTHSCALE_TRUE,
     )
@@ -528,15 +502,13 @@ def generate_cv_data(
     K: gpytorch.lazy.LazyEvaluatedKernelTensor = ker(X_train)  # type: ignore
 
     # Distribution
-    normal_rv: gpytorch.distributions.Distribution = (
-        gpytorch.distributions.MultivariateNormal(
-            mean=torch.zeros(K.shape[0]),  # vector; shape=(N_TRAIN)
-            covariance_matrix=K,  # matrix; shape=(N_TRAIN, N_TRAIN)
-        )
+    normal_rv: gpytorch.distributions.Distribution = gpytorch.distributions.MultivariateNormal(
+        mean=torch.zeros(K.shape[0]),  # vector; shape=(N_TRAIN)
+        covariance_matrix=K,  # matrix; shape=(N_TRAIN, N_TRAIN)
     )
 
     # Noise
-    noise: Union[float, torch.Tensor] = 0.0
+    noise: float | torch.Tensor = 0.0
     if NOISE_VAR != 0.0:
         _noise_rv = gpytorch.distributions.MultivariateNormal(
             mean=torch.zeros(N_TRAIN),
@@ -548,7 +520,7 @@ def generate_cv_data(
     Y_train: torch.Tensor = normal_rv.sample() + noise
 
     # Create a list of index subsets
-    FOLDS_INDICES: List[List[int]]
+    FOLDS_INDICES: list[list[int]]
     if NUM_FOLDS == N_TRAIN:
         FOLDS_INDICES = [[i] for i in range(N_TRAIN)]
     else:
@@ -556,22 +528,17 @@ def generate_cv_data(
         # very big (wrt N_TRAIN), but we will only use it for some examples
         # where NUM_FOLDS << N_TRAIN
 
-        folds_end: NDArray[Shape["NUM_FOLDS"], Int]  # noqa: F722
+        folds_end: NDArray[np.float64]
         folds_end = np.random.multinomial(
             N_TRAIN,
             np.ones(NUM_FOLDS) / NUM_FOLDS,
             size=1,
-        )[
-            0
-        ].cumsum()  # last index of each fold
+        )[0].cumsum()  # last index of each fold
 
-        folds_startstop: NDArray[Shape["NUM_FOLDS_plus_1"], Int]  # noqa: F821
+        folds_startstop: NDArray[np.int_]
         folds_startstop = np.insert(folds_end, 0, 0, axis=0)
 
-        FOLDS_INDICES = [
-            list(range(folds_startstop[i], folds_startstop[i + 1]))
-            for i in range(NUM_FOLDS)
-        ]
+        FOLDS_INDICES = [list(range(folds_startstop[i], folds_startstop[i + 1])) for i in range(NUM_FOLDS)]
 
     if SCRAMBLE:
         _rnd_idx = np.random.permutation(N_TRAIN)  # Randomized indices
@@ -580,15 +547,13 @@ def generate_cv_data(
     check_folds_indices(FOLDS_INDICES, N_TRAIN)
 
     # Fit GP: Create and fit GP model to training data
-    _mean: gpytorch.means.Mean = gputils.gpytorch_mean_constant(
+    _mean: gpytorch.means.Mean = gpytorch_mean_constant(
         0.0,
         fixed=True,
     )
-    _likelihood: gpytorch.likelihoods.Likelihood = (
-        gputils.gpytorch_likelihood_gaussian(
-            variance=max(1e-6, NOISE_VAR),
-            fixed=False,
-        )
+    _likelihood: gpytorch.likelihoods.Likelihood = gpytorch_likelihood_gaussian(
+        variance=max(1e-6, NOISE_VAR),
+        fixed=False,
     )
     model: ExactGPModel = ExactGPModel(
         X_train,
@@ -604,36 +569,26 @@ def generate_cv_data(
     model.eval_mode()
     # Collect residual means and variances of all folds
     # (residual = observed - predicted)
-    _residual_means: List[NDArray[Any, Float]] = []
-    _residual_vars: List[NDArray[Any, Float]] = []
+    _residual_means: list[NDArray[np.float64]] = []
+    _residual_vars: list[NDArray[np.float64]] = []
     for i in range(NUM_FOLDS):
         # Split on i-th fold
-        fold_X_test, fold_X_train = split_test_train_fold(
-            FOLDS_INDICES, X_train, i
-        )
-        fold_Y_test, fold_Y_train = split_test_train_fold(
-            FOLDS_INDICES, Y_train, i
-        )
+        fold_X_test, fold_X_train = split_test_train_fold(FOLDS_INDICES, X_train, i)
+        fold_Y_test, fold_Y_train = split_test_train_fold(FOLDS_INDICES, Y_train, i)
         # Set training data
-        model.set_train_data(
-            inputs=fold_X_train, targets=fold_Y_train, strict=False
-        )
+        model.set_train_data(inputs=fold_X_train, targets=fold_Y_train, strict=False)
         # Predict on test data
         m, v = model.predict(fold_X_test, latent=False)
-        #
         _residual_means.append((fold_Y_test - m).numpy())
         _residual_vars.append(v.numpy())
 
     # Concatenate and sort so that the residuals correspond to observation 1,2,3 etc.
-    cv_residual_means: NDArray[Shape["N_TRAIN"], Float]  # noqa: F821
-    cv_residual_vars: NDArray[Shape["N_TRAIN"], Float]  # noqa: F821
+    cv_residual_means: NDArray[np.float64]
+    cv_residual_vars: NDArray[np.float64]
     cv_residual_means = np.block(_residual_means).flatten()
     cv_residual_vars = np.block(_residual_vars).flatten()
-    # if NUM_FOLDS != N_TRAIN:
-    #     cv_residual_means = np.concatenate(cv_residual_means)
-    #     cv_residual_vars = np.concatenate(cv_residual_vars)
 
-    folds_concat = sum(FOLDS_INDICES, [])
+    folds_concat = functools.reduce(operator.iadd, FOLDS_INDICES, [])
     idx_sort = list(np.argsort(folds_concat))
     cv_residual_means = cv_residual_means[idx_sort]
     cv_residual_vars = cv_residual_vars[idx_sort]
@@ -642,7 +597,7 @@ def generate_cv_data(
         cv_residual_means,
         cv_residual_vars,
         FOLDS_INDICES,
-        K.evaluate().detach().numpy(),
+        K.to_dense().detach().numpy(),
         X_train,
         Y_train,
     )
@@ -653,15 +608,13 @@ def multitest_loo(
     N_TRAIN: int,
     NOISE_VAR: float,
     N_DUPLICATE_X: int,
-):
-    """
-    Used for running multiple tests of loo()
+) -> None:
+    """Used for running multiple tests of loo().
 
     Checks that mean and variance are the same as if the residuals were computed
     in a loop.
     This does NOT check covariance and transformed residuals
     """
-
     # Generate residuals
     (
         cv_residual_means,
@@ -694,27 +647,24 @@ def multitest_loo(
     assert np.allclose(LOO_mean, cv_residual_means, atol=1e-3)
 
 
-def test_loo_noiseless():
-    """
-    Test that loo formula gives same result as computing the residuals in a loop
+def test_loo_noiseless() -> None:
+    """Test that loo formula gives same result as computing the residuals in a loop.
 
     No observational noise, no duplicates
     """
     multitest_loo(N_DIM=3, N_TRAIN=50, NOISE_VAR=0, N_DUPLICATE_X=0)
 
 
-def test_loo_noise():
-    """
-    Test that loo formula gives same result as computing the residuals in a loop
+def test_loo_noise() -> None:
+    """Test that loo formula gives same result as computing the residuals in a loop.
 
     With observational noise, no duplicates
     """
     multitest_loo(N_DIM=3, N_TRAIN=50, NOISE_VAR=0.3, N_DUPLICATE_X=0)
 
 
-def test_loo_noise_dupl():
-    """
-    Test that loo formula gives same result as computing the residuals in a loop
+def test_loo_noise_dupl() -> None:
+    """Test that loo formula gives same result as computing the residuals in a loop.
 
     With observational noise, with duplicates
     """
@@ -728,15 +678,13 @@ def multitest_multifold(
     NOISE_VAR: float,
     N_DUPLICATE_X: int,
     SCRAMBLE: bool,
-):
-    """
-    Used for running multiple tests of multifold()
+) -> None:
+    """Used for running multiple tests of multifold().
 
     Checks that mean and variance are the same as if the residuals were computed
     in a loop.
     This does NOT check covariance and transformed residuals
     """
-
     # Generate residuals
     (
         cv_residual_means,
@@ -770,10 +718,8 @@ def multitest_multifold(
     assert np.allclose(CV_mean, cv_residual_means, atol=1e-3)
 
 
-def test_multifold_noiseless():
-    """
-    Test that multifold formula gives same result as computing the residuals in
-    a loop
+def test_multifold_noiseless() -> None:
+    """Test that multifold formula gives same result as computing the residuals in a loop.
 
     No observational noise, no duplicates
     """
@@ -787,10 +733,8 @@ def test_multifold_noiseless():
     )
 
 
-def test_multifold_noise():
-    """
-    Test that multifold formula gives same result as computing the residuals in
-    a loop
+def test_multifold_noise() -> None:
+    """Test that multifold formula gives same result as computing the residuals in a loop.
 
     With observational noise, no duplicates
     """
@@ -804,10 +748,8 @@ def test_multifold_noise():
     )
 
 
-def test_multifold_noise_dupl():
-    """
-    Test that multifold formula gives same result as computing the residuals in
-    a loop
+def test_multifold_noise_dupl() -> None:
+    """Test that multifold formula gives same result as computing the residuals in a loop.
 
     With observational noise, with duplicates
     """
@@ -821,11 +763,8 @@ def test_multifold_noise_dupl():
     )
 
 
-def test_loo_multifold():
-    """
-    Test that LOO and multifold CV gives the same results when fold size = 1
-    """
-
+def test_loo_multifold() -> None:
+    """Test that LOO and multifold CV gives the same results when fold size = 1."""
     # Generate some data
     N = 100
     NOISE_VAR = 0.23
