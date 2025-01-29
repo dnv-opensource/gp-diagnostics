@@ -5,8 +5,8 @@ import numpy as np
 from gp_diagnostics.utils.stats import snorm_qq, split_test_train_fold
 
 
-def test_snorm_qq_equalR():
-    """Check that the function returns the same as in R"""
+def test_snorm_qq_equalR() -> None:
+    """Check that snorm_qq() matches known R's extRemes.qqnorm output for standard normal sample."""
     # Inputs (generated from a standard normal variable)
     x = np.array(
         [
@@ -159,11 +159,11 @@ def test_snorm_qq_equalR():
     assert np.allclose(q_sample, R_data)
 
 
-def test_split_test_train_fold():
-    """Check that split_test_train_fold() gives the expected results"""
+def test_split_test_train_fold() -> None:
+    """Check correctness of splitting for test vs. train folds."""
     folds = [[1, 4, 5], [0], [7], [2, 3, 6], [9, 8]]
 
-    x = np.arange(10) * 1.1
+    x = np.arange(10, dtype=np.float64) * 1.1
 
     y1 = np.array([1.1, 4.4, 5.5, 0.0, 7.7, 2.2, 3.3, 6.6])
     y2 = np.array([9.9, 8.8])
