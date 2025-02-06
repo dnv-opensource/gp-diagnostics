@@ -153,10 +153,10 @@ def test_snorm_qq_equalR() -> None:
     assert q_snorm_lower.shape == (N,)
 
     # Check that results match the reference output computed from extRemes.qqnorm in R
-    assert np.allclose(q_snorm_lower, R_lower, equal_nan=True)
-    assert np.allclose(q_snorm_upper, R_upper, equal_nan=True)
-    assert np.allclose(q_snorm, R_snorm)
-    assert np.allclose(q_sample, R_data)
+    np.testing.assert_allclose(q_snorm_lower, R_lower, equal_nan=True)
+    np.testing.assert_allclose(q_snorm_upper, R_upper, equal_nan=True)
+    np.testing.assert_allclose(q_snorm, R_snorm)
+    np.testing.assert_allclose(q_sample, R_data)
 
 
 def test_split_test_train_fold() -> None:
@@ -168,15 +168,15 @@ def test_split_test_train_fold() -> None:
     y1 = np.array([1.1, 4.4, 5.5, 0.0, 7.7, 2.2, 3.3, 6.6])
     y2 = np.array([9.9, 8.8])
     x_test, x_train = split_test_train_fold(folds, x, 4)
-    assert np.allclose(y1, x_train)
-    assert np.allclose(y2, x_test)
+    np.testing.assert_allclose(y1, x_train)
+    np.testing.assert_allclose(y2, x_test)
 
     y1 = np.array([1.1, 4.4, 5.5, 7.7, 2.2, 3.3, 6.6, 9.9, 8.8])
     y2 = np.array([0.0])
     x_test, x_train = split_test_train_fold(folds, x, 1)
-    assert np.allclose(y1, x_train)
-    assert np.allclose(y2, x_test)
+    np.testing.assert_allclose(y1, x_train)
+    np.testing.assert_allclose(y2, x_test)
 
     x_test, x_train = split_test_train_fold(folds, x.reshape(-1, 1), 1)
-    assert np.allclose(y1.reshape(-1, 1), x_train)
-    assert np.allclose(y2.reshape(-1, 1), x_test)
+    np.testing.assert_allclose(y1.reshape(-1, 1), x_train)
+    np.testing.assert_allclose(y2.reshape(-1, 1), x_test)

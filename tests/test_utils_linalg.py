@@ -37,12 +37,12 @@ def test_symmetrify() -> None:
     A = random_lower_triang_matrix(N, 77)
     symmetrify(A, upper=False)
 
-    assert np.allclose(A - A.T, np.zeros((N, N)))
+    np.testing.assert_allclose(A - A.T, np.zeros((N, N)))
 
     A = random_lower_triang_matrix(N, 77)
     symmetrify(A.T, upper=True)
 
-    assert np.allclose(A - A.T, np.zeros((N, N)))
+    np.testing.assert_allclose(A - A.T, np.zeros((N, N)))
 
 
 def test_triang_solve() -> None:
@@ -57,22 +57,22 @@ def test_triang_solve() -> None:
     # Solve L*X = B and check
     X = triang_solve(L, B, lower=True, trans=False)
     assert X.shape == (N, M)
-    assert np.allclose(B, L.dot(X))
+    np.testing.assert_allclose(B, L.dot(X))
 
     # Solve L.T*X = B and check
     X = triang_solve(L.T, B, lower=False, trans=False)
     assert X.shape == (N, M)
-    assert np.allclose(B, L.T.dot(X))
+    np.testing.assert_allclose(B, L.T.dot(X))
 
     # Solve L.T*X = B and check
     X = triang_solve(L, B, lower=True, trans=True)
     assert X.shape == (N, M)
-    assert np.allclose(B, L.T.dot(X))
+    np.testing.assert_allclose(B, L.T.dot(X))
 
     # Solve L*X = B and check
     X = triang_solve(L.T, B, lower=False, trans=True)
     assert X.shape == (N, M)
-    assert np.allclose(B, L.dot(X))
+    np.testing.assert_allclose(B, L.dot(X))
 
 
 def test_triang_solve_with_B_being_1D_array() -> None:
@@ -86,22 +86,22 @@ def test_triang_solve_with_B_being_1D_array() -> None:
     # Solve L*X = B and check
     X = triang_solve(L, B, lower=True, trans=False)
     assert X.shape == (N,)
-    assert np.allclose(B, L.dot(X))
+    np.testing.assert_allclose(B, L.dot(X))
 
     # Solve L.T*X = B and check
     X = triang_solve(L.T, B, lower=False, trans=False)
     assert X.shape == (N,)
-    assert np.allclose(B, L.T.dot(X))
+    np.testing.assert_allclose(B, L.T.dot(X))
 
     # Solve L.T*X = B and check
     X = triang_solve(L, B, lower=True, trans=True)
     assert X.shape == (N,)
-    assert np.allclose(B, L.T.dot(X))
+    np.testing.assert_allclose(B, L.T.dot(X))
 
     # Solve L*X = B and check
     X = triang_solve(L.T, B, lower=False, trans=True)
     assert X.shape == (N,)
-    assert np.allclose(B, L.dot(X))
+    np.testing.assert_allclose(B, L.dot(X))
 
 
 def test_mulinv_solve() -> None:
@@ -117,12 +117,12 @@ def test_mulinv_solve() -> None:
     # Solve A*X = B and check
     X = mulinv_solve(L, B, lower=True)
     assert X.shape == (N, M)
-    assert np.allclose(B, A.dot(X))
+    np.testing.assert_allclose(B, A.dot(X))
 
     # Solve A*X = B and check
     X = mulinv_solve(L.T, B, lower=False)
     assert X.shape == (N, M)
-    assert np.allclose(B, L.T.dot(L).dot(X))
+    np.testing.assert_allclose(B, L.T.dot(L).dot(X))
 
 
 def test_mulinv_solve_with_B_being_1D_array() -> None:
@@ -137,12 +137,12 @@ def test_mulinv_solve_with_B_being_1D_array() -> None:
     # Solve A*X = B and check
     X = mulinv_solve(L, B, lower=True)
     assert X.shape == (N,)
-    assert np.allclose(B, A.dot(X))
+    np.testing.assert_allclose(B, A.dot(X))
 
     # Solve A*X = B and check
     X = mulinv_solve(L.T, B, lower=False)
     assert X.shape == (N,)
-    assert np.allclose(B, L.T.dot(L).dot(X))
+    np.testing.assert_allclose(B, L.T.dot(L).dot(X))
 
 
 def test_mulinv_solve_rev() -> None:
@@ -158,12 +158,12 @@ def test_mulinv_solve_rev() -> None:
     # Solve X*A = B and check
     X = mulinv_solve_rev(L, B, lower=True)
     assert X.shape == (M, N)
-    assert np.allclose(B, X.dot(A))
+    np.testing.assert_allclose(B, X.dot(A))
 
     # Solve X*A = B and check
     X = mulinv_solve_rev(L.T, B, lower=False)
     assert X.shape == (M, N)
-    assert np.allclose(B, X.dot(L.T.dot(L)))
+    np.testing.assert_allclose(B, X.dot(L.T.dot(L)))
 
 
 def test_mulinv_solve_rev_with_B_being_1D_array() -> None:
@@ -178,12 +178,12 @@ def test_mulinv_solve_rev_with_B_being_1D_array() -> None:
     # Solve X*A = B and check
     X = mulinv_solve_rev(L, B, lower=True)
     assert X.shape == (N,)
-    assert np.allclose(B, X.dot(A))
+    np.testing.assert_allclose(B, X.dot(A))
 
     # Solve X*A = B and check
     X = mulinv_solve_rev(L.T, B, lower=False)
     assert X.shape == (N,)
-    assert np.allclose(B, X.dot(L.T.dot(L)))
+    np.testing.assert_allclose(B, X.dot(L.T.dot(L)))
 
 
 def test_chol_inv() -> None:
@@ -198,7 +198,7 @@ def test_chol_inv() -> None:
     A_inv_true = np.linalg.inv(A)
     A_inv = chol_inv(L)
 
-    assert np.allclose(A_inv_true, A_inv)
+    np.testing.assert_allclose(A_inv_true, A_inv)
 
 
 def test_traceprod() -> None:
@@ -213,4 +213,4 @@ def test_traceprod() -> None:
     # Compute and check
     trace = traceprod(A, B)
     trace_true = A.dot(B).diagonal().sum()
-    assert np.allclose(trace, trace_true)
+    np.testing.assert_allclose(trace, trace_true)

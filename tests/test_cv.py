@@ -422,9 +422,9 @@ def test_loo_1d() -> None:
     assert LOO_cov is not None
     assert LOO_residuals_transformed is not None
 
-    assert np.allclose(LOO_mean, LOO_mean_true, atol=1e-3)
-    assert np.allclose(LOO_cov, LOO_cov_true)
-    assert np.allclose(LOO_residuals_transformed, LOO_residuals_transformed_true, atol=1e-3)
+    np.testing.assert_allclose(LOO_mean, LOO_mean_true, atol=1e-3)
+    np.testing.assert_allclose(LOO_cov, LOO_cov_true, rtol=1e-05, atol=1e-08)
+    np.testing.assert_allclose(LOO_residuals_transformed, LOO_residuals_transformed_true, atol=1e-3)
 
 
 def generate_cv_data(
@@ -591,8 +591,8 @@ def multitest_loo(
     assert LOO_cov is not None
     LOO_var = LOO_cov.diagonal()
 
-    assert np.allclose(LOO_var, cv_residual_vars, atol=1e-3)
-    assert np.allclose(LOO_mean, cv_residual_means, atol=1e-3)
+    np.testing.assert_allclose(LOO_var, cv_residual_vars, atol=1e-3)
+    np.testing.assert_allclose(LOO_mean, cv_residual_means, atol=1e-3)
 
 
 def test_loo_noiseless() -> None:
@@ -642,8 +642,8 @@ def multitest_multifold(
     assert CV_cov is not None
     CV_var = CV_cov.diagonal()
 
-    assert np.allclose(CV_var, cv_residual_vars, atol=1e-4)
-    assert np.allclose(CV_mean, cv_residual_means, atol=1e-3)
+    np.testing.assert_allclose(CV_var, cv_residual_vars, atol=1e-4)
+    np.testing.assert_allclose(CV_mean, cv_residual_means, atol=1e-3)
 
 
 def test_multifold_noiseless() -> None:
@@ -714,6 +714,6 @@ def test_loo_multifold() -> None:
     assert LOO_cov is not None
     assert LOO_residuals_transformed is not None
 
-    assert np.allclose(CV_mean, LOO_mean)
-    assert np.allclose(CV_cov, LOO_cov)
-    assert np.allclose(CV_residuals_transformed, LOO_residuals_transformed)
+    np.testing.assert_allclose(CV_mean, LOO_mean)
+    np.testing.assert_allclose(CV_cov, LOO_cov)
+    np.testing.assert_allclose(CV_residuals_transformed, LOO_residuals_transformed)
