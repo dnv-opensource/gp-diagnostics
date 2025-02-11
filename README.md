@@ -65,37 +65,7 @@ uv sync
 
 ## Usage
 
-Here is a brief example demonstrating leave-one-out (LOO) cross-validation on a Gaussian Process model.  
-For a fully worked example (including multifold CV and detailed plotting), see
-[examples/example.py](examples/example.py).
-
-```python
-import gpytorch
-import torch
-
-# gp-diagnostics modules
-from gp_diagnostics.cv import loo
-from gp_diagnostics.metrics import evaluate_GP
-
-# 1. Build synthetic covariance matrix (K) & data (Y). For example, a simple RBF or Matern GP:
-N = 10
-x = torch.linspace(0, 1, N).view(-1, 1)
-kernel = gpytorch.kernels.ScaleKernel(gpytorch.kernels.MaternKernel(nu=2.5))
-K = kernel(x).to_dense()  # NxN prior covariance
-Y = torch.distributions.MultivariateNormal(torch.zeros(N), K).sample()
-
-# 2. (Optional) Add observational noise
-noise_var = 0.01
-
-# 3. Perform LOO cross-validation
-loo_mean, loo_cov, residuals_transformed = loo(K.detach().numpy(), Y.detach().numpy(), noise_variance=noise_var)
-
-# 4. Compute diagnostic metrics
-metrics = evaluate_GP(K.detach().numpy(), Y.detach().numpy(), noise_variance=noise_var)
-print("Log Marginal Likelihood:", metrics["log_marginal_likelihood"])
-print("Pseudo-Likelihood (CV): ", metrics["log_pseudo_likelihood"])
-print("MSE:", metrics["MSE"])
-```
+See [examples/example.ipynb](examples/example.ipynb) and [examples/exact_gp_example.ipynb](examples/exact_gp_example.ipynb) for detailed usage examples.
 
 ---
 
