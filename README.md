@@ -28,37 +28,8 @@ models.
 
 ## Installation
 
-Below are two ways to install **gp-diagnostics** into your current project (using `pip` or
-[`uv`](https://docs.astral.sh/uv/)). Since the package is not yet published on PyPI, you must install directly from this
-repository.
-
----
-
-### Option 1: Install with `uv` (recommended)
-
 ```bash
-uv add "gp-diagnostics @ git+https://github.com/dnv-opensource/gp-diagnostics"
-```
-
-### Option 2: Install with `pip`
-
-```bash
-pip install git+https://github.com/dnv-opensource/gp-diagnostics
-```
-
-> **Note**
-> - The two options above install **only** the core dependencies required to use the package, see below for development
->   installation.
-
-## Development Installation
-
-If you plan to contribute to the package, or need the development dependencies (e.g. to run the examples), you should do 
-the following:
-
-```bash
-git clone https://github.com/dnv-opensource/gp-diagnostics.git
-cd gp-diagnostics
-uv sync
+pip install gp-diagnostics
 ```
 
 ---
@@ -96,11 +67,11 @@ See [examples/example.ipynb](examples/example.ipynb) and [examples/exact_gp_exam
 Please feel free to open [issues](https://github.com/dnv-opensource/gp-diagnostics/issues) or submit pull requests if
 you have ideas for improvements or bug fixes.  
 
-For local development:
+For local development (requires [`uv`](https://docs.astral.sh/uv/))
 
-1. [Fork](https://github.com/dnv-opensource/gp-diagnostics/fork) or clone the repository.  
-2. Create a feature branch: `git checkout -b feature/new-idea`.  
-3. Implement your changes and add tests.  
+1. Clone this repository.
+2. Install dependencies with `uv sync`
+3. Implement your changes and add tests.
 4. Submit a pull request to `main` when ready.
 
 ---
